@@ -1,24 +1,53 @@
 // importing app components
 const express = require("express");
 const app = express();
+const mongoose = require("mongoose");
 require("dotenv").config();
 
 // this will have the environment and configuration for the application
 const appConfig = require("./config");
+const dbConnString = require("./config").dbConn;
 
-console.log("Starting server...");
+// connecting to database
+_connectToDB();
 
-app.listen(appConfig.app.port, (err) => {
-  if (err) {
-    console.log(`Failed to listen on port ${appConfig.app.port}`);
-    console.log(err);
-  } else {
-    console.log(`Listening on port ${appConfig.app.port}`);
-    _printRunningEnvironment();
-  }
-});
+function _connectToDB() {
+  console.log("Connecting to db...");
+  mongoose.connect(
+    dbConnString(appConfig),
+    {
+      useUnifiedTopology: true,
+      useNewUrlParser: true,
+      useCreateIndex: true,
+    },
+    (error) => {
+      if (error) {
+        console.log("Unable to connect to db");
+        throw error;
+      } else {
+        console.log(`Connected to db ${appConfig.db.name} successfully`);
+        // starting the server
+        _initServer();
+      }
+    }
+  );
+}
 
-// prints the environment the app is running currently along with the Local network IP
+function _initServer() {
+  console.log("Starting server...");
+
+  app.listen(appConfig.app.port, (err) => {
+    if (err) {
+      console.log(`Failed to listen on port ${appConfig.app.port}`);
+      throw err;
+    } else {
+      console.log(`Listening on port ${appConfig.app.port}`);
+      _printRunningEnvironment();
+    }
+  });
+}
+
+// prints the environment where the app is running currently along with network urls
 function _printRunningEnvironment() {
   // importing modules
   const os = require("os");
