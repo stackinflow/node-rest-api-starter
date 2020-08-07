@@ -60,34 +60,12 @@ function _getEnvironment() {
   return "dev";
 }
 
-function _checkIfEnvIsValid(env) {
+function checkIfEnvIsValid(env) {
   if (!env || !env.db || !env.db.host || !env.db.name) {
     return false;
   }
   return true;
 }
 
-function getConnectionString(env) {
-  if (!_checkIfEnvIsValid(env)) {
-    throw "Passed invalid environment";
-  }
-
-  // for hosts without a port
-  // atlas clusters will not provide a port
-  // only localhost will have a port
-  // mongodb+srv://<username>:<password>@host/db-name
-  if (!env.db.port) {
-    if (env.db.username === "" || env.db.password === "") {
-      return `mongodb+srv://${env.db.host}/${env.db.name}`;
-    }
-    return `mongodb+srv://${env.db.username}:${env.db.password}@${env.db.host}/${env.db.name}`;
-  } else {
-    if (env.db.username === "" || env.db.password === "") {
-      return `mongodb+srv://${env.db.host}:${env.db.port}/${env.db.name}`;
-    }
-    return `mongodb+srv://${env.db.username}:${env.db.password}@${env.db.host}:${env.db.port}/${env.db.name}`;
-  }
-}
-
 module.exports = config[env] || config["dev"];
-module.exports.dbConn = getConnectionString;
+module.exports.checkIfEnvIsValid = checkIfEnvIsValid;

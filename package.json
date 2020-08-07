@@ -6,10 +6,8 @@
   "scripts": {
     "dev": "nodemon index.js",
     "start": "node index.js",
-    "format": "prettier \"api/**/*.{js,html}\" --write",
-    "format-home": "prettier \"*.{js,html}\" --write",
-    "lint": "eslint \"api/**/*.js\" --quiet",
-    "lint-home": "eslint \"*.js\" --quiet"
+    "format": "prettier \"./**/*.{js,html}\" --write",
+    "lint": "eslint \"./**/*.js\" --quiet"
   },
   "repository": {
     "type": "git",
