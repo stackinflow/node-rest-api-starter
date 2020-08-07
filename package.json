@@ -1,20 +1,29 @@
 {
   "name": "node-rest-api-auth",
   "version": "1.0.0",
-  "description": "",
+  "description": "Template for node.js REST API (includes auth)",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "format": "prettier \"api/**/*.{js,html}\" --write",
+    "lint": "eslint \"api/**/*.js\" --quiet"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/fayaz07/node-rest-api-auth.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Mohammad Fayaz(@fayaz07)",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/fayaz07/node-rest-api-auth/issues"
   },
-  "homepage": "https://github.com/fayaz07/node-rest-api-auth#readme"
+  "homepage": "https://github.com/fayaz07/node-rest-api-auth#readme",
+  "devDependencies": {
+    "eslint": "^7.6.0",
+    "eslint-config-prettier": "^6.11.0",
+    "nodemon": "^2.0.4",
+    "prettier": "^2.0.5"
+  }
 }
