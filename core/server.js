@@ -3,6 +3,7 @@ const helmet = require("helmet");
 const bodyParser = require("body-parser");
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 
 // importing routes
 const authRoute = require("../api/v1/routes/auth");
@@ -13,7 +14,7 @@ function _configureServer(app) {
   //  body parser
   app.use(express.json());
   //app.use(express.static(__dirname + '/docs'));
-  app.use(express.static(__dirname + "/public"));
+  app.use(express.static(path.join(__dirname, "../public")));
   app.use(helmet());
 
   app.use(bodyParser.json({ limit: "200kb" }));

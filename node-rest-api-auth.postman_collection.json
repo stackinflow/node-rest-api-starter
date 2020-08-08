@@ -67,6 +67,66 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "verify user",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:6000/api/v1/auth/token/verify?t=b8725071c46a9f0af208693caf135a177def7c2d77b702720a38eeab3bd6fc79d95e90e3e1be0fdd12bf20a8e345525812a0a75d50545e93c78c1908d7f733f1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"token",
+								"verify"
+							],
+							"query": [
+								{
+									"key": "t",
+									"value": "b8725071c46a9f0af208693caf135a177def7c2d77b702720a38eeab3bd6fc79d95e90e3e1be0fdd12bf20a8e345525812a0a75d50545e93c78c1908d7f733f1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "resend token",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\":\"fayazfz07@gmail.com\",\n    \"password\":\"Fayaz@07\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:6000/api/v1/auth/token/resend",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"token",
+								"resend"
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}

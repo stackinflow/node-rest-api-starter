@@ -4,7 +4,12 @@ const {
   validPassword,
   validateLoginFields,
 } = require("../middlewares/auth");
-const { register, login } = require("../controllers/auth");
+const {
+  register,
+  login,
+  verifyToken,
+  resendToken,
+} = require("../controllers/auth");
 const { internalServerError } = require("../utils/response");
 
 // Routes to be defined
@@ -35,5 +40,26 @@ router.post("/login", validateLoginFields, validPassword, async (req, res) => {
     internalServerError(res, error);
   }
 });
+
+router.get("/token/verify", async (req, res) => {
+  try {
+    await verifyToken(req, res);
+  } catch (error) {
+    internalServerError(res, error);
+  }
+});
+
+router.post(
+  "/token/resend",
+  validateLoginFields,
+  validPassword,
+  async (req, res) => {
+    try {
+      await resendToken(req, res);
+    } catch (error) {
+      internalServerError(res, error);
+    }
+  }
+);
 
 module.exports = router;
