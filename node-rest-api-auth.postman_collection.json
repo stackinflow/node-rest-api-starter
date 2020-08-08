@@ -1,0 +1,76 @@
+{
+	"info": {
+		"_postman_id": "fa78d954-8bf2-4ed5-91fa-1da507addf65",
+		"name": "node-rest-api-auth",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\":\"fayazfz07@gmail.com\",\n    \"password\":\"Fayaz@07\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:6000/api/v1/auth/register",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\":\"fayazfz07@gmail.com\",\n    \"password\":\"Fayaz@07\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:6000/api/v1/auth/login",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"protocolProfileBehavior": {}
+}

@@ -4,6 +4,9 @@ const bodyParser = require("body-parser");
 const express = require("express");
 const cors = require("cors");
 
+// importing routes
+const authRoute = require("../api/v1/routes/auth");
+
 function _configureServer(app) {
   console.log("Configuring server...");
 
@@ -31,6 +34,18 @@ function _configureServer(app) {
     next();
   });
 
+  _setRoutes(app);
+}
+
+function _setRoutes(app) {
+  console.log("Setting up routes for api v1");
+  //  auth middleware
+  app.use("/api/v1/auth", authRoute);
+
+  _handleInvalidRoutes(app);
+}
+
+function _handleInvalidRoutes(app) {
   // handling 404 routes
   /* eslint-disable no-alert, no-unused-vars, no-console */
   app.use(function (req, res, next) {
@@ -58,7 +73,6 @@ module.exports.initServer = (app, appConfig) => {
   _configureServer(app);
 
   console.log("Starting server...");
-
   app.listen(appConfig.app.port, (err) => {
     if (err) {
       console.log(`Failed to listen on port ${appConfig.app.port}`);
