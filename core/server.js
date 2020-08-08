@@ -32,7 +32,7 @@ function _configureServer(app) {
   });
 
   // handling 404 routes
-  /* eslint-disable no-alert, no-console */
+  /* eslint-disable no-alert, no-unused-vars, no-console */
   app.use(function (req, res, next) {
     res.status(404);
 
