@@ -1,2 +1,8 @@
 node_modules/
 .env
+
+# removing keys
+keys/private.pem
+keys/privater.pem
+keys/public.pem
+keys/publicr.pem
