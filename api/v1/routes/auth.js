@@ -6,6 +6,7 @@ const {
   validPasswords,
   validEmail,
   validResetFields,
+  validRefreshToken,
 } = require("../middlewares/auth");
 const {
   register,
@@ -16,6 +17,7 @@ const {
   sendPasswordResetCode,
   resendPasswordResetCode,
   resetPassword,
+  refreshTokens,
 } = require("../controllers/auth");
 const { internalServerError } = require("../utils/response");
 
@@ -97,5 +99,13 @@ router.post(
     }
   }
 );
+
+router.get("/token", validRefreshToken, async (req, res) => {
+  try {
+    await refreshTokens(req, res);
+  } catch (error) {
+    internalServerError(res, error);
+  }
+});
 
 module.exports = router;

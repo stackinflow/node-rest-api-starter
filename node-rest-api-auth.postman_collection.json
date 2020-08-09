@@ -254,6 +254,33 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "token",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "refresh_token",
+								"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ0b2RvLTcuaGVyb2t1YXBwLmNvbSIsInN1YiI6ImFwaV9SZWZyZXNoVG9rZW4iLCJpc3MiOiJ0b2RvLTcuaGVyb2t1YXBwLmNvbSIsInVzZXJfaWQiOiI1ZjJlZTcwOWFiZTYwNTAzNzUzOTkwYzEiLCJpYXQiOjE1OTY5OTU5OTIsImV4cCI6MTU5Nzg1OTk5Mn0.KnhG7yw5_8TmERyFVeTF6ZQ2hiR2u-X0C1H2AQgGtqtTTR49tvbnlMz4YEdrX4GwpuBAw3l4ZuM1BMDwf_3aWUPrkDmEzHtbRTIrvdD4HJSPcukQ6O31AAmxrNTf_vbp8itDlYeXKp_5N9M7vXgU4eB0aVlPSz4P4O-vuSa3xBGdGxurgh2eRrxRzNPyXrx7M4Ty0psI20f6xDXmFd2018Ax_WzVIdiue-NVNwNRPDIeRsKbZDtPvq-S31YbLRria5VHMw0MQZBL37lWcikIzB-fpqzbRkLAChFCnfVNfREsbV5D2CT3dfxAhXMwypdui6DK7UXhmolMObexJrqFiQ",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "localhost:6000/api/v1/auth/token",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"token"
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}

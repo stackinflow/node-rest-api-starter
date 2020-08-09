@@ -3,6 +3,7 @@ const {
   emailValidation,
   resetPasswordValidation,
 } = require("../utils/validators");
+const { verifyRefreshToken } = require("../controllers/auth");
 
 // register fields validation middleware
 module.exports.validateRegisterFields = (req, res, next) => {
@@ -87,6 +88,26 @@ module.exports.validResetFields = (req, res, next) => {
     });
   }
   next();
+};
+
+module.exports.validRefreshToken = (req, res, next) => {
+  const refreshToken = req.header("refresh_token");
+  const verificationResult = verifyRefreshToken(refreshToken);
+  if (verificationResult.valid) {
+    req.refreshToken = refreshToken;
+    req.verificationResult = verificationResult;
+    next();
+  } else if (verificationResult.error.toString().includes("Expired")) {
+    return res.status(511).json({
+      status: "failed",
+      message: "User session expired, login again",
+    });
+  } else {
+    return res.status(401).json({
+      status: "failed",
+      message: "Invalid token",
+    });
+  }
 };
 
 function checkPassword(pwd) {

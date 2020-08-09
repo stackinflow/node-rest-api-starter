@@ -111,16 +111,24 @@ module.exports.login = async (req, res, loginAsAdmin) => {
   authUser.refreshToken = refreshToken;
 
   // saving refresh-token in database
-  await authUser.save();
-
-  res
-    .status(200)
-    .header("access-token", accessToken)
-    .header("refresh-token", refreshToken)
-    .json({
-      status: "success",
-      message: "User has been logged in successfully",
+  await authUser.save(async (error, savedUser) => {
+    if (savedUser) {
+      return res
+        .status(200)
+        .header("access_token", accessToken)
+        .header("refresh_token", refreshToken)
+        .json({
+          status: "success",
+          message: "User has been logged in successfully",
+        });
+    }
+    // Print the error and sent back failed response
+    console.log(error);
+    return res.status(403).json({
+      status: "failed",
+      message: "Unable to login please try later",
     });
+  });
 };
 
 module.exports.verifyToken = async (req, res) => {
@@ -322,11 +330,54 @@ module.exports.resetPassword = async (req, res) => {
     });
   });
 };
+
+module.exports.refreshTokens = async (req, res) => {
+  const authUser = await Auth.findOne({
+    _id: req.verificationResult.data.user_id,
+  });
+
+  if (!authUser)
+    return res.status(400).json({
+      status: "failed",
+      message: "Invalid user",
+    });
+
+  if (authUser.refreshToken === req.refreshToken) {
+    const newAccessToken = await JWTHandler.genAccessToken(authUser.email);
+    const newRefreshToken = await JWTHandler.genRefreshToken(authUser._id);
+
+    authUser.refreshToken = newRefreshToken;
+
+    await authUser.save(async (error, savedUser) => {
+      if (savedUser) {
+        return res
+          .status(200)
+          .header("access_token", newAccessToken)
+          .header("refresh_token", newRefreshToken)
+          .json({
+            status: "success",
+            message: "Tokens have been refreshed",
+          });
+      }
+      // Print the error and sent back failed response
+      console.log(error);
+      return res.status(403).json({
+        status: "failed",
+        message: "Unable to refresh the token, please try later",
+      });
+    });
+  }
+};
+
 /*
 
   Helper functions
 
 */
+
+module.exports.verifyRefreshToken = (refreshToken) => {
+  return JWTHandler.verifyRefreshToken(refreshToken);
+};
 
 async function _getAuthUser(email) {
   const emailExist = await Auth.findOne({ email: email });

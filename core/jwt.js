@@ -105,7 +105,7 @@ class JWTHandler {
       return { valid: true, data: jwt.verify(token, cert) };
     } catch (err) {
       if (err.name.includes("TokenExpiredError")) {
-        return { valid: false, error: "Access-Token Expired" };
+        return { valid: false, error: "Token Expired" };
       }
       return { valid: false, error: err };
     }
