@@ -11,4 +11,4 @@ const tokenSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("verification_token", tokenSchema);
+module.exports = mongoose.model("token", tokenSchema);

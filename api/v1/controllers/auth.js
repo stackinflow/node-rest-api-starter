@@ -2,7 +2,15 @@ const Auth = require("../models/auth");
 const bcrypt = require("bcryptjs");
 const jwt = require("../../../core/jwt");
 const JWTHandler = new jwt();
-const { sendNewVerificationMail, verifyUser } = require("./token");
+const {
+  sendVerificationMail,
+  sendNewVerificationMail,
+  verifyUser,
+  sendOTPForPasswordReset,
+  resendOTPForPasswordReset,
+  verifyOTP,
+  deleteOldToken,
+} = require("./token");
 
 module.exports.register = async (req, res) => {
   // check if user exists
@@ -24,7 +32,7 @@ module.exports.register = async (req, res) => {
   // creating user in database
   await newAuthUser.save(async (error, savedUser) => {
     if (savedUser) {
-      await sendNewVerificationMail(savedUser._id, savedUser.email);
+      await sendVerificationMail(savedUser._id, savedUser.email);
       return res.status(201).json({
         status: "success",
         message:
@@ -106,9 +114,10 @@ module.exports.verifyToken = async (req, res) => {
   const verified = await verifyUser(token);
 
   if (!verified)
-    return res
-      .status(400)
-      .json({ status: "success", message: "Verification token expired" });
+    return res.status(400).json({
+      status: "success",
+      message: "Verification token expired/invalid",
+    });
 
   const authUser = await Auth.findOne({ _id: verified._userId });
 
@@ -163,6 +172,135 @@ module.exports.resendToken = async (req, res) => {
   });
 };
 
+module.exports.updatePassword = async (req, res) => {
+  const authUser = await _getAuthUser(req.body.email);
+
+  if (!authUser)
+    return res.status(400).json({ status: "failed", message: "Invalid user" });
+
+  // validate the password
+  const validPass = await _comparePasswords(
+    req.body.oldPassword,
+    authUser.password
+  );
+
+  if (!validPass)
+    return res.status(400).json({
+      status: "failed",
+      message: "You have entered an incorrect password",
+    });
+
+  const samePassword = await _comparePasswords(
+    req.body.newPassword,
+    authUser.password
+  );
+
+  if (samePassword)
+    return res.status(400).json({
+      status: "failed",
+      message: "Old password can not be new password",
+    });
+
+  authUser.password = await _hashThePassword(req.body.newPassword);
+
+  await authUser.save(async (error, savedUser) => {
+    if (savedUser)
+      return res.status(200).json({
+        status: "success",
+        message: "Your password has been changed",
+      });
+
+    // Print the error and sent back failed response
+    console.log(error);
+    return res.status(403).json({
+      status: "failed",
+      message: "Unable to change your password, please try later",
+    });
+  });
+};
+
+module.exports.sendPasswordResetCode = async (req, res) => {
+  console.log("Sending password reset code");
+
+  // check if user exists
+  const authUser = await _getAuthUser(req.body.email);
+
+  if (!authUser)
+    return res.status(400).json({ status: "failed", message: "Invalid user" });
+
+  await sendOTPForPasswordReset(authUser._id, authUser.email);
+
+  res.status(200).json({
+    status: "success",
+    message:
+      "An OTP has been sent to your email, please enter that to reset your password",
+  });
+};
+
+module.exports.resendPasswordResetCode = async (req, res) => {
+  // console.log("Sending password reset code");
+
+  // check if user exists
+  const authUser = await _getAuthUser(req.body.email);
+
+  if (!authUser)
+    return res.status(400).json({ status: "failed", message: "Invalid user" });
+
+  await resendOTPForPasswordReset(authUser._id, authUser.email);
+
+  res.status(200).json({
+    status: "success",
+    message:
+      "An OTP has been sent to your email, please enter that to reset your password",
+  });
+};
+
+module.exports.resetPassword = async (req, res) => {
+  const verificationToken = await verifyOTP(req.body.otp);
+  if (!verificationToken)
+    return res.status(400).json({
+      status: "failed",
+      message: "OTP is invalid/expired, please request for new OTP",
+    });
+
+  const authUser = await Auth.findOne({ _id: verificationToken._userId });
+
+  if (!authUser || authUser.email != req.body.email)
+    return res.status(400).json({
+      status: "failed",
+      message: "Invalid user",
+    });
+
+  const samePassword = await _comparePasswords(
+    req.body.password,
+    authUser.password
+  );
+
+  if (samePassword)
+    return res.status(400).json({
+      status: "failed",
+      message: "Old password can not be new password",
+    });
+
+  authUser.password = await _hashThePassword(req.body.password);
+
+  await deleteOldToken(verificationToken._userId);
+
+  await authUser.save(async (error, savedUser) => {
+    if (savedUser)
+      return res.status(200).json({
+        status: "success",
+        message: "Your password has been reset, please login now",
+      });
+
+    // Print the error and sent back failed response
+    console.log(error);
+    return res.status(403).json({
+      status: "failed",
+      message: "Unable to change your password, please try later",
+    });
+  });
+};
 /*
 
   Helper functions

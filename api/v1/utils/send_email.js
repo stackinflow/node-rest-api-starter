@@ -61,6 +61,25 @@ class Email {
       console.log(err);
     }
   }
+
+  pwdReset(otp, email) {
+    try {
+      var htmlMessage = `<p>Hi, here is the OTP for resetting your password, this is valid only for 1 hour. 
+          <br/>
+          <blockquote> <strong> ${otp} </strong> </blockquote>
+          </p> `;
+
+      var mailOptions = {
+        from: `Your app <${process.env.SENDGRID_EMAIL}>`,
+        to: email,
+        subject: "Password reset",
+        html: htmlMessage,
+      };
+      this._sendEmail(mailOptions);
+    } catch (err) {
+      console.log(err);
+    }
+  }
 }
 
 module.exports = Email;

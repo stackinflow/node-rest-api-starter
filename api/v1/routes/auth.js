@@ -3,12 +3,19 @@ const {
   validateRegisterFields,
   validPassword,
   validateLoginFields,
+  validPasswords,
+  validEmail,
+  validResetFields,
 } = require("../middlewares/auth");
 const {
   register,
   login,
   verifyToken,
   resendToken,
+  updatePassword,
+  sendPasswordResetCode,
+  resendPasswordResetCode,
+  resetPassword,
 } = require("../controllers/auth");
 const { internalServerError } = require("../utils/response");
 
@@ -56,6 +63,43 @@ router.post(
   async (req, res) => {
     try {
       await resendToken(req, res);
+    } catch (error) {
+      internalServerError(res, error);
+    }
+  }
+);
+
+router.patch("/password", validPasswords, async (req, res) => {
+  try {
+    await updatePassword(req, res);
+  } catch (error) {
+    internalServerError(res, error);
+  }
+});
+
+router.post("/password/reset/code", validEmail, async (req, res) => {
+  try {
+    await sendPasswordResetCode(req, res);
+  } catch (error) {
+    internalServerError(res, error);
+  }
+});
+
+router.post("/password/reset/code/resend", validEmail, async (req, res) => {
+  try {
+    await resendPasswordResetCode(req, res);
+  } catch (error) {
+    internalServerError(res, error);
+  }
+});
+
+router.post(
+  "/password/reset",
+  validResetFields,
+  validPassword,
+  async (req, res) => {
+    try {
+      await resetPassword(req, res);
     } catch (error) {
       internalServerError(res, error);
     }
