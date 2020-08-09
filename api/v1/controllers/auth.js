@@ -12,7 +12,8 @@ const {
   deleteOldToken,
 } = require("./token");
 
-module.exports.register = async (req, res) => {
+module.exports.register = async (req, res, registerAsAdmin) => {
+  if (registerAsAdmin === null) registerAsAdmin = false;
   // check if user exists
   const authUser = await _getAuthUser(req.body.email);
 
@@ -27,6 +28,7 @@ module.exports.register = async (req, res) => {
   const newAuthUser = new Auth({
     email: req.body.email,
     password: hashedPassword,
+    admin: registerAsAdmin,
   });
 
   // creating user in database
@@ -48,7 +50,9 @@ module.exports.register = async (req, res) => {
   });
 };
 
-module.exports.login = async (req, res) => {
+module.exports.login = async (req, res, loginAsAdmin) => {
+  if (loginAsAdmin === null) loginAsAdmin = false;
+
   // check if user exists
   const authUser = await _getAuthUser(req.body.email);
 
@@ -80,6 +84,23 @@ module.exports.login = async (req, res) => {
       status: "failed",
       message:
         "Your account has been banned for suspicious activity, please contact support for more information.",
+    });
+
+  // if user is not an admin and trying to login through admin login route
+  // throw error
+  // if user is an admin and trying to login through normal login route
+  // throw error
+  if ((!loginAsAdmin && authUser.admin) || (loginAsAdmin && !authUser.admin))
+    return res.status(400).json({
+      status: "failed",
+      message: "You are not allowed to login here.",
+    });
+
+  if (loginAsAdmin && !authUser.adminVerified)
+    return res.status(400).json({
+      status: "failed",
+      message:
+        "Your account is under review, please contact support for more information.",
     });
 
   //  Create and assign a token

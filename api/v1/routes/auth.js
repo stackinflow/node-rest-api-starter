@@ -19,21 +19,13 @@ const {
 } = require("../controllers/auth");
 const { internalServerError } = require("../utils/response");
 
-// Routes to be defined
-// 1  Register
-// 2  Login
-// 3  Reset password initiate
-// 4  Reset password
-// 5  Change password
-// 6  Resend verification code
-
 router.post(
   "/register",
   validateRegisterFields,
   validPassword,
   async (req, res) => {
     try {
-      await register(req, res);
+      await register(req, res, false);
     } catch (error) {
       internalServerError(res, error);
     }
@@ -42,7 +34,7 @@ router.post(
 
 router.post("/login", validateLoginFields, validPassword, async (req, res) => {
   try {
-    await login(req, res);
+    await login(req, res, false);
   } catch (error) {
     internalServerError(res, error);
   }

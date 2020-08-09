@@ -5,8 +5,11 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 
-// importing routes
+// importing user routes
 const authRoute = require("../api/v1/routes/auth");
+
+// importing admin routes
+const adminAuthRoute = require("../api/v1/routes/admin/auth");
 
 function _configureServer(app) {
   console.log("Configuring server...");
@@ -42,6 +45,10 @@ function _setRoutes(app) {
   console.log("Setting up routes for api v1");
   //  auth middleware
   app.use("/api/v1/auth", authRoute);
+
+  // admin routes
+  // auth middleware
+  app.use("/api/v1/admin/auth", adminAuthRoute);
 
   _handleInvalidRoutes(app);
 }
