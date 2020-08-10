@@ -2,11 +2,14 @@ const router = require("express").Router();
 const {
   validateRegisterFields,
   validPassword,
-  validateLoginFields,
   validPasswords,
   validEmail,
   validResetFields,
-  validRefreshToken,
+  // checkAuthHeader,
+  validateRefreshToken,
+  validateAccessToken,
+  checkRefreshToken,
+  checkAccessToken,
 } = require("../middlewares/auth");
 const {
   register,
@@ -23,6 +26,7 @@ const { internalServerError } = require("../utils/response");
 
 router.post(
   "/register",
+  //  checkAuthHeader,
   validateRegisterFields,
   validPassword,
   async (req, res) => {
@@ -34,13 +38,19 @@ router.post(
   }
 );
 
-router.post("/login", validateLoginFields, validPassword, async (req, res) => {
-  try {
-    await login(req, res, false);
-  } catch (error) {
-    internalServerError(res, error);
+router.post(
+  "/login",
+  // checkAuthHeader,
+  validateRegisterFields,
+  validPassword,
+  async (req, res) => {
+    try {
+      await login(req, res, false);
+    } catch (error) {
+      internalServerError(res, error);
+    }
   }
-});
+);
 
 router.get("/token/verify", async (req, res) => {
   try {
@@ -52,7 +62,8 @@ router.get("/token/verify", async (req, res) => {
 
 router.post(
   "/token/resend",
-  validateLoginFields,
+  // checkAuthHeader,
+  validateRegisterFields,
   validPassword,
   async (req, res) => {
     try {
@@ -63,13 +74,19 @@ router.post(
   }
 );
 
-router.patch("/password", validPasswords, async (req, res) => {
-  try {
-    await updatePassword(req, res);
-  } catch (error) {
-    internalServerError(res, error);
+router.patch(
+  "/password",
+  checkAccessToken,
+  validateAccessToken,
+  validPasswords,
+  async (req, res) => {
+    try {
+      await updatePassword(req, res);
+    } catch (error) {
+      internalServerError(res, error);
+    }
   }
-});
+);
 
 router.post("/password/reset/code", validEmail, async (req, res) => {
   try {
@@ -100,12 +117,17 @@ router.post(
   }
 );
 
-router.get("/token", validRefreshToken, async (req, res) => {
-  try {
-    await refreshTokens(req, res);
-  } catch (error) {
-    internalServerError(res, error);
+router.get(
+  "/token",
+  checkRefreshToken,
+  validateRefreshToken,
+  async (req, res) => {
+    try {
+      await refreshTokens(req, res);
+    } catch (error) {
+      internalServerError(res, error);
+    }
   }
-});
+);
 
 module.exports = router;

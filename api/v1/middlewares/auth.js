@@ -3,30 +3,30 @@ const {
   emailValidation,
   resetPasswordValidation,
 } = require("../utils/validators");
-const { verifyRefreshToken } = require("../controllers/auth");
+const {
+  verifyRefreshToken,
+  verifyAccessToken,
+} = require("../controllers/auth");
+const {
+  EXPIRED,
+  AUTHORIZATION_HEADER,
+  BASIC,
+  BEARER,
+} = require("../utils/constants");
 
 // register fields validation middleware
+// using register fields validation to login and
+// resending the verification token also
+// as the body is same for all
 module.exports.validateRegisterFields = (req, res, next) => {
   const { error } = registerValidation(req.body);
-  if (error) {
+  if (error)
     return res.status(400).json({
       status: "failed",
       message: error.details[0].message,
       error: error,
     });
-  }
-  next();
-};
 
-module.exports.validateLoginFields = (req, res, next) => {
-  const { error } = registerValidation(req.body);
-  if (error) {
-    return res.status(400).json({
-      status: "failed",
-      message: error.details[0].message,
-      error: error,
-    });
-  }
   next();
 };
 
@@ -90,14 +90,12 @@ module.exports.validResetFields = (req, res, next) => {
   next();
 };
 
-module.exports.validRefreshToken = (req, res, next) => {
-  const refreshToken = req.header("refresh_token");
-  const verificationResult = verifyRefreshToken(refreshToken);
+module.exports.validateRefreshToken = (req, res, next) => {
+  const verificationResult = verifyRefreshToken(req.refreshToken);
   if (verificationResult.valid) {
-    req.refreshToken = refreshToken;
-    req.verificationResult = verificationResult;
+    req.tokenData = verificationResult.data;
     next();
-  } else if (verificationResult.error.toString().includes("Expired")) {
+  } else if (verificationResult.error.toString().includes(EXPIRED)) {
     return res.status(511).json({
       status: "failed",
       message: "User session expired, login again",
@@ -108,6 +106,74 @@ module.exports.validRefreshToken = (req, res, next) => {
       message: "Invalid token",
     });
   }
+};
+
+module.exports.validateAccessToken = (req, res, next) => {
+  const verificationResult = verifyAccessToken(req.accessToken);
+  if (verificationResult.valid) {
+    req.tokenData = verificationResult.data;
+    next();
+  } else if (verificationResult.error.toString().includes(EXPIRED)) {
+    return res.status(511).json({
+      status: "failed",
+      message: "User session expired, login again",
+    });
+  } else {
+    return res.status(401).json({
+      status: "failed",
+      message: "Invalid token",
+    });
+  }
+};
+
+// these methods will just check the availability of tokens,
+// they won't verify if they are valid or expired
+module.exports.checkRefreshToken = (req, res, next) => {
+  if (!req.header(AUTHORIZATION_HEADER))
+    return res.status(400).json({
+      status: "failed",
+      message: "No token specified",
+    });
+
+  const authHeader = req.header(AUTHORIZATION_HEADER).toString().split(" ");
+  if (authHeader != null && authHeader[0] === BASIC) {
+    if (authHeader[1]) {
+      req.refreshToken = authHeader[1];
+      next();
+    } else
+      return res.status(400).json({
+        status: "failed",
+        message: "Invalid/malformed token",
+      });
+  } else
+    return res.status(403).json({
+      status: "failed",
+      message: "Unsupported type of authentication",
+    });
+};
+
+module.exports.checkAccessToken = (req, res, next) => {
+  if (!req.header(AUTHORIZATION_HEADER))
+    return res.status(400).json({
+      status: "failed",
+      message: "No token specified",
+    });
+
+  const authHeader = req.header(AUTHORIZATION_HEADER).toString().split(" ");
+  if (authHeader != null && authHeader[0] === BEARER) {
+    if (authHeader[1]) {
+      req.accessToken = authHeader[1];
+      next();
+    } else
+      return res.status(400).json({
+        status: "failed",
+        message: "Invalid/malformed token",
+      });
+  } else
+    return res.status(403).json({
+      status: "failed",
+      message: "Unsupported type of authentication",
+    });
 };
 
 function checkPassword(pwd) {
@@ -136,3 +202,25 @@ function checkPassword(pwd) {
   }
   return true;
 }
+
+/*
+module.exports.checkAuthHeader = (req, res, next) => {
+  const authHeader = req.header(AUTHORIZATION_HEADER).toString().split(" ");
+  if (
+    authHeader != null &&
+    authHeader[0] === BASIC &&
+    req.header(GRANT_TYPE) === CREDENTIALS
+  ) {
+    const credentials = Buffer.from(authHeader[1], BASE64)
+      .toString()
+      .split(":");
+
+    req.credentials = { email: credentials[0], password: credentials[1] };
+    next();
+  } else
+    return res.status(403).json({
+      status: "failed",
+      message: "Unsupported type of authentication",
+    });
+};
+*/

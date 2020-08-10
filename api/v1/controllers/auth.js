@@ -11,6 +11,7 @@ const {
   verifyOTP,
   deleteOldToken,
 } = require("./token");
+const { ACCESS_TOKEN, REFRESH_TOKEN } = require("../utils/constants");
 
 module.exports.register = async (req, res, registerAsAdmin) => {
   if (registerAsAdmin === null) registerAsAdmin = false;
@@ -115,8 +116,8 @@ module.exports.login = async (req, res, loginAsAdmin) => {
     if (savedUser) {
       return res
         .status(200)
-        .header("access_token", accessToken)
-        .header("refresh_token", refreshToken)
+        .header(ACCESS_TOKEN, accessToken)
+        .header(REFRESH_TOKEN, refreshToken)
         .json({
           status: "success",
           message: "User has been logged in successfully",
@@ -202,7 +203,7 @@ module.exports.resendToken = async (req, res) => {
 };
 
 module.exports.updatePassword = async (req, res) => {
-  const authUser = await _getAuthUser(req.body.email);
+  const authUser = await _getAuthUser(req.tokenData.email);
 
   if (!authUser)
     return res.status(400).json({ status: "failed", message: "Invalid user" });
@@ -333,7 +334,7 @@ module.exports.resetPassword = async (req, res) => {
 
 module.exports.refreshTokens = async (req, res) => {
   const authUser = await Auth.findOne({
-    _id: req.verificationResult.data.user_id,
+    _id: req.tokenData.user_id,
   });
 
   if (!authUser)
@@ -352,8 +353,8 @@ module.exports.refreshTokens = async (req, res) => {
       if (savedUser) {
         return res
           .status(200)
-          .header("access_token", newAccessToken)
-          .header("refresh_token", newRefreshToken)
+          .header(ACCESS_TOKEN, newAccessToken)
+          .header(REFRESH_TOKEN, newRefreshToken)
           .json({
             status: "success",
             message: "Tokens have been refreshed",
@@ -374,6 +375,10 @@ module.exports.refreshTokens = async (req, res) => {
   Helper functions
 
 */
+
+module.exports.verifyAccessToken = (refreshToken) => {
+  return JWTHandler.verifyAccessToken(refreshToken);
+};
 
 module.exports.verifyRefreshToken = (refreshToken) => {
   return JWTHandler.verifyRefreshToken(refreshToken);
