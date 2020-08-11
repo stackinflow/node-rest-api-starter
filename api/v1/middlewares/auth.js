@@ -182,6 +182,12 @@ module.exports.checkUser = async (req, res, next) => {
     _id: 1,
     disabled: 1,
   });
+  if (!authUser)
+    return res.status(400).json({
+      status: "failed",
+      message: "Invalid user/token",
+    });
+
   if (authUser.disabled)
     return res.status(403).json({
       status: "failed",

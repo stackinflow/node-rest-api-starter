@@ -367,7 +367,11 @@ module.exports.refreshTokens = async (req, res) => {
         message: "Unable to refresh the token, please try later",
       });
     });
-  }
+  } else
+    return res.status(400).json({
+      status: "failed",
+      message: "Invalid/malformed refreshToken",
+    });
 };
 
 module.exports.verifyAccessToken = (refreshToken) => {

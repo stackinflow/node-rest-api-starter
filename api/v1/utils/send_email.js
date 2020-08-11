@@ -24,18 +24,22 @@ class Email {
       html: mailOptions.html,
     };
     // console.log(mailOptions.html);
-    //ES6
-    sgMail.send(msg).then(
-      () => {
-        console.log("Email sent");
-      },
-      (error) => {
-        console.error(error);
-        if (error.response) {
-          console.error(error.response.body);
+
+    if (process.env.NODE_ENV === "test")
+      console.log("mails will not be sent in test env");
+    // ES6
+    else
+      sgMail.send(msg).then(
+        () => {
+          console.log("Email sent");
+        },
+        (error) => {
+          console.error(error);
+          if (error.response) {
+            console.error(error.response.body);
+          }
         }
-      }
-    );
+      );
   }
 
   accVerification(token, email) {

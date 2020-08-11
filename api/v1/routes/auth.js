@@ -124,7 +124,6 @@ router.get(
   "/token",
   checkRefreshToken,
   validateRefreshToken,
-  checkUser,
   async (req, res) => {
     try {
       await refreshTokens(req, res);

@@ -17,3 +17,5 @@ connectToDB(appConfig);
 
 // initialising server
 initServer(app, appConfig);
+
+module.exports.server = app;
