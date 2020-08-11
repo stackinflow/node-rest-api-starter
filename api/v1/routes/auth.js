@@ -21,6 +21,7 @@ const {
   resendPasswordResetCode,
   resetPassword,
   refreshTokens,
+  deleteAccount,
 } = require("../controllers/auth");
 const { internalServerError } = require("../utils/response");
 
@@ -129,5 +130,13 @@ router.get(
     }
   }
 );
+
+router.delete("/", checkAccessToken, validateAccessToken, async (req, res) => {
+  try {
+    await deleteAccount(req, res);
+  } catch (error) {
+    internalServerError(res, error);
+  }
+});
 
 module.exports = router;

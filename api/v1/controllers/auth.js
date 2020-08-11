@@ -370,12 +370,6 @@ module.exports.refreshTokens = async (req, res) => {
   }
 };
 
-/*
-
-  Helper functions
-
-*/
-
 module.exports.verifyAccessToken = (refreshToken) => {
   return JWTHandler.verifyAccessToken(refreshToken);
 };
@@ -383,6 +377,27 @@ module.exports.verifyAccessToken = (refreshToken) => {
 module.exports.verifyRefreshToken = (refreshToken) => {
   return JWTHandler.verifyRefreshToken(refreshToken);
 };
+
+module.exports.deleteAccount = async (req, res) => {
+  const authUser = await _getAuthUser(req.tokenData.email);
+  await Auth.deleteOne({ email: authUser.email }, (error) => {
+    if (error)
+      return res.status(403).json({
+        status: "failed",
+        message: "Failed to deleted your account, please try again",
+      });
+    return res.status(200).json({
+      status: "success",
+      message: "Your account has been deleted successfully",
+    });
+  });
+};
+
+/*
+
+  Helper functions
+
+*/
 
 async function _getAuthUser(email) {
   const emailExist = await Auth.findOne({ email: email });
