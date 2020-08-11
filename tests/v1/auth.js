@@ -21,17 +21,20 @@ module.exports = (chai, server) => {
   // because they come with mocha in command line
   /*global before, describe,it*/
   /*eslint no-undef: "error"*/
+  /*eslint no-unused-vars: "error"*/
+
   before(() => {
-    /*eslint no-unused-vars: "error"*/
-    return new Promise((resolve, _) => {
-      Auth.deleteMany().then((_) => {
-        Token.deleteMany().then((_) => {
+    /* eslint-disable */
+    return new Promise((resolve, reject) => {
+      Auth.deleteMany().then((data) => {
+        Token.deleteMany().then((data) => {
           return resolve();
         });
       });
     });
   });
 
+  /* eslint-enable */
   describe("Testing Auth API", () => {
     it("should not login as user is not existing", (done) => {
       chai
