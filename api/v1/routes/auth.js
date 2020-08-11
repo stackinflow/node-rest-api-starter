@@ -10,6 +10,7 @@ const {
   validateAccessToken,
   checkRefreshToken,
   checkAccessToken,
+  checkUser,
 } = require("../middlewares/auth");
 const {
   register,
@@ -80,6 +81,7 @@ router.patch(
   checkAccessToken,
   validateAccessToken,
   validPasswords,
+  checkUser,
   async (req, res) => {
     try {
       await updatePassword(req, res);
@@ -122,6 +124,7 @@ router.get(
   "/token",
   checkRefreshToken,
   validateRefreshToken,
+  checkUser,
   async (req, res) => {
     try {
       await refreshTokens(req, res);

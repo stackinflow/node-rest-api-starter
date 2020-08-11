@@ -6,6 +6,7 @@ const {
 const {
   verifyRefreshToken,
   verifyAccessToken,
+  getAuthUserWithProjection,
 } = require("../controllers/auth");
 const {
   EXPIRED,
@@ -174,6 +175,52 @@ module.exports.checkAccessToken = (req, res, next) => {
       status: "failed",
       message: "Unsupported type of authentication",
     });
+};
+
+module.exports.checkUser = async (req, res, next) => {
+  var authUser = await getAuthUserWithProjection(req.tokenData.email, {
+    _id: 1,
+    disabled: 1,
+  });
+  if (authUser.disabled)
+    return res.status(403).json({
+      status: "failed",
+      message:
+        "Your account has been disabled access, please contact support for more information",
+    });
+  req.authUser = authUser;
+  next();
+};
+
+module.exports.checkAdmin = async (req, res, next) => {
+  var authUser = await getAuthUserWithProjection(req.tokenData.email, {
+    _id: 1,
+    admin: 1,
+    adminVerified: 1,
+    disabled: 1,
+  });
+  if (!authUser || !authUser.admin)
+    return res.status(403).json({
+      status: "failed",
+      message: "You are not permitted to perform this operation",
+    });
+
+  if (!authUser.adminVerified)
+    return res.status(403).json({
+      status: "failed",
+      message:
+        "Your account is not verified by our team, please contact support for more information",
+    });
+
+  if (authUser.disabled)
+    return res.status(403).json({
+      status: "failed",
+      message:
+        "Your account has been disabled access, please contact support for more information",
+    });
+
+  req.authUser = authUser;
+  next();
 };
 
 function checkPassword(pwd) {

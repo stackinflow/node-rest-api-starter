@@ -16,7 +16,7 @@ const { ACCESS_TOKEN, REFRESH_TOKEN } = require("../utils/constants");
 module.exports.register = async (req, res, registerAsAdmin) => {
   if (registerAsAdmin === null) registerAsAdmin = false;
   // check if user exists
-  const authUser = await _getAuthUser(req.body.email);
+  const authUser = await getAuthUser(req.body.email);
 
   if (authUser)
     return res
@@ -55,7 +55,7 @@ module.exports.login = async (req, res, loginAsAdmin) => {
   if (loginAsAdmin === null) loginAsAdmin = false;
 
   // check if user exists
-  const authUser = await _getAuthUser(req.body.email);
+  const authUser = await getAuthUser(req.body.email);
 
   if (!authUser)
     return res
@@ -80,11 +80,11 @@ module.exports.login = async (req, res, loginAsAdmin) => {
         "Account not verified, please check your email and verify your account",
     });
 
-  if (authUser.banned)
+  if (authUser.disabled)
     return res.status(403).json({
       status: "failed",
       message:
-        "Your account has been banned for suspicious activity, please contact support for more information.",
+        "Your account has been disabled access for suspicious activity, please contact support for more information.",
     });
 
   // if user is not an admin and trying to login through admin login route
@@ -172,7 +172,7 @@ module.exports.resendToken = async (req, res) => {
   console.log("Resend verification token");
 
   // check if user exists
-  const authUser = await _getAuthUser(req.body.email);
+  const authUser = await getAuthUser(req.body.email);
 
   if (!authUser)
     return res.status(400).send({ status: "failed", message: "Invalid user" });
@@ -203,7 +203,7 @@ module.exports.resendToken = async (req, res) => {
 };
 
 module.exports.updatePassword = async (req, res) => {
-  const authUser = await _getAuthUser(req.tokenData.email);
+  const authUser = await getAuthUser(req.tokenData.email);
 
   if (!authUser)
     return res.status(400).json({ status: "failed", message: "Invalid user" });
@@ -253,7 +253,7 @@ module.exports.sendPasswordResetCode = async (req, res) => {
   console.log("Sending password reset code");
 
   // check if user exists
-  const authUser = await _getAuthUser(req.body.email);
+  const authUser = await getAuthUser(req.body.email);
 
   if (!authUser)
     return res.status(400).json({ status: "failed", message: "Invalid user" });
@@ -271,7 +271,7 @@ module.exports.resendPasswordResetCode = async (req, res) => {
   // console.log("Sending password reset code");
 
   // check if user exists
-  const authUser = await _getAuthUser(req.body.email);
+  const authUser = await getAuthUser(req.body.email);
 
   if (!authUser)
     return res.status(400).json({ status: "failed", message: "Invalid user" });
@@ -379,7 +379,7 @@ module.exports.verifyRefreshToken = (refreshToken) => {
 };
 
 module.exports.deleteAccount = async (req, res) => {
-  const authUser = await _getAuthUser(req.tokenData.email);
+  const authUser = await getAuthUser(req.tokenData.email);
   await Auth.deleteOne({ email: authUser.email }, (error) => {
     if (error)
       return res.status(403).json({
@@ -393,13 +393,90 @@ module.exports.deleteAccount = async (req, res) => {
   });
 };
 
+module.exports.getAllUsers = async (res) => {
+  await Auth.find({ admin: false }, { email: 1 }, (error, users) => {
+    if (error)
+      return res
+        .status(403)
+        .json({ status: "failed", message: "Failed to fetch users" });
+    return res.status(200).json({
+      status: "success",
+      message: "fetched users",
+      data: { users: users },
+    });
+  });
+};
+
+module.exports.getAllAdmins = async (res) => {
+  await Auth.find({ admin: true }, { email: 1 }, (error, admins) => {
+    if (error)
+      return res
+        .status(403)
+        .json({ status: "failed", message: "Failed to fetch admins" });
+    return res.status(200).json({
+      status: "success",
+      message: "fetched admins",
+      data: { adming: admins },
+    });
+  });
+};
+
+module.exports.disableUser = async (req, res) => {
+  await _disableOrEnableUser(req, res, true);
+};
+
+module.exports.enableUser = async (req, res) => {
+  await _disableOrEnableUser(req, res, false);
+};
+
 /*
 
   Helper functions
 
 */
 
-async function _getAuthUser(email) {
+async function _disableOrEnableUser(req, res, disable) {
+  var authUser = await getAuthUserById(req.body.userId);
+  if (!authUser)
+    return res.status(403).json({
+      status: "failed",
+      message: "User requested doesn't exists",
+    });
+
+  if (authUser.disabled === disable)
+    return res.status(403).json({
+      status: "failed",
+      message: `User already has access ${disable ? "disabled" : "enabled"}`,
+    });
+
+  authUser.disabled = disable;
+  authUser.save((error, saved) => {
+    if (error)
+      return res.status(403).json({
+        status: "failed",
+        message: "Failed to disable user access",
+      });
+
+    return res.status(200).json({
+      status: "success",
+      message: `User with id ${saved._id} ${
+        disable ? "disabled" : "enabled"
+      } access successfully`,
+    });
+  });
+}
+
+async function getAuthUserById(userId) {
+  const emailExist = await Auth.findById(userId);
+  return emailExist;
+}
+
+async function getAuthUserWithProjection(email, project) {
+  const emailExist = await Auth.findOne({ email: email }, project);
+  return emailExist;
+}
+
+async function getAuthUser(email) {
   const emailExist = await Auth.findOne({ email: email });
   return emailExist;
 }
@@ -415,3 +492,6 @@ async function _comparePasswords(password, hashedPassword) {
   const validPass = await bcrypt.compare(password, hashedPassword);
   return validPass;
 }
+
+module.exports.getAuthUser = getAuthUser;
+module.exports.getAuthUserWithProjection = getAuthUserWithProjection;
