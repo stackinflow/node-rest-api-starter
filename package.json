@@ -7,7 +7,8 @@
     "dev": "nodemon index.js",
     "start": "node index.js",
     "format": "prettier \"./**/*.{js,html}\" --write",
-    "lint": "eslint \"./**/*.js\" --quiet"
+    "lint": "eslint \"./**/*.js\" --quiet",
+    "test": "mocha tests/v1/test --exit"
   },
   "repository": {
     "type": "git",
@@ -21,8 +22,11 @@
   },
   "homepage": "https://github.com/fayaz07/node-rest-api-auth#readme",
   "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
     "eslint": "^7.6.0",
     "eslint-config-prettier": "^6.11.0",
+    "mocha": "^8.1.1",
     "nodemon": "^2.0.4",
     "prettier": "^2.0.5"
   },
