@@ -1,5 +1,7 @@
 # Node.js REST API starter
 
+<img src="https://raw.githubusercontent.com/stackinflow/node-rest-api-starter/master/assets/banner-node-rest-api.png">
+
 This repository is a template to avoid rewriting all the basic authentication code for REST API's built with Express.js, MongoDB.
 
 ## Project architecture & Directories Structure
