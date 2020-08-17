@@ -11,9 +11,77 @@ const {
   verifyOTP,
   deleteOldToken,
 } = require("./token");
-const { ACCESS_TOKEN, REFRESH_TOKEN } = require("../utils/constants");
+const {
+  ACCESS_TOKEN,
+  REFRESH_TOKEN,
+  FB_OAUTH_URL,
+  GOOGLE_OAUTH_URL,
+  EMAIL_KEY,
+  FACEBOOK_KEY,
+  GOOGLE_KEY,
+  FB_OAUTH_REFRESH,
+} = require("../utils/constants");
+const { default: Axios } = require("axios");
 
-module.exports.register = async (req, res, registerAsAdmin) => {
+// facebook login
+module.exports.loginWithFB = async (req, res) => {
+  // sending access token to server to verify if the token is valid and return the data
+  const userData = await getResponseFromURL(
+    FB_OAUTH_URL + req.body.accessToken
+  );
+
+  if (userData.error)
+    return res.status(403).json({
+      status: "failed",
+      message: userData.error.message,
+    });
+
+  if (!userData.email)
+    return res.status(403).json({
+      status: "failed",
+      message: "Failed to login with Facebook",
+    });
+
+  var authUser = await getAuthUser(userData.email);
+  if (authUser) {
+    // login with facebook
+    tryOAuthLogin(authUser, res, req.body.accessToken, FACEBOOK_KEY);
+  } else {
+    // register with facebook
+    tryRegisterWithFacebook(userData, res, req.body.accessToken);
+  }
+};
+
+// google login
+module.exports.loginWithGoogle = async (req, res) => {
+  // sending access token to server to verify if the token is valid and return the data
+  const userData = await getResponseFromURL(
+    GOOGLE_OAUTH_URL + req.body.accessToken
+  );
+
+  if (userData.error)
+    return res.status(403).json({
+      status: "failed",
+      message: userData.error.error_description,
+    });
+
+  if (!userData.email)
+    return res.status(403).json({
+      status: "failed",
+      message: "Failed to login with Google",
+    });
+
+  var authUser = await getAuthUser(userData.email);
+  if (authUser) {
+    // login with facebook
+    tryOAuthLogin(authUser, res, req.body.accessToken, GOOGLE_KEY);
+  } else {
+    // register with facebook
+    tryRegisterWithGoogle(userData, res, req.body.accessToken);
+  }
+};
+
+module.exports.registerWithEmail = async (req, res, registerAsAdmin) => {
   if (registerAsAdmin === null) registerAsAdmin = false;
   // check if user exists
   const authUser = await getAuthUser(req.body.email);
@@ -30,6 +98,7 @@ module.exports.register = async (req, res, registerAsAdmin) => {
     email: req.body.email,
     password: hashedPassword,
     admin: registerAsAdmin,
+    provider: EMAIL_KEY,
   });
 
   // creating user in database
@@ -51,7 +120,7 @@ module.exports.register = async (req, res, registerAsAdmin) => {
   });
 };
 
-module.exports.login = async (req, res, loginAsAdmin) => {
+module.exports.loginWithEmail = async (req, res, loginAsAdmin) => {
   if (loginAsAdmin === null) loginAsAdmin = false;
 
   // check if user exists
@@ -73,66 +142,10 @@ module.exports.login = async (req, res, loginAsAdmin) => {
       message: "You have entered an incorrect password",
     });
 
-  if (!authUser.emailVerified)
-    return res.status(403).json({
-      status: "failed",
-      message:
-        "Account not verified, please check your email and verify your account",
-    });
-
-  if (authUser.disabled)
-    return res.status(403).json({
-      status: "failed",
-      message:
-        "Your account has been disabled access for suspicious activity, please contact support for more information.",
-    });
-
-  // if user is not an admin and trying to login through admin login route
-  // throw error
-  // if user is an admin and trying to login through normal login route
-  // throw error
-  if ((!loginAsAdmin && authUser.admin) || (loginAsAdmin && !authUser.admin))
-    return res.status(400).json({
-      status: "failed",
-      message: "You are not allowed to login here.",
-    });
-
-  if (loginAsAdmin && !authUser.adminVerified)
-    return res.status(400).json({
-      status: "failed",
-      message:
-        "Your account is under review, please contact support for more information.",
-    });
-
-  //  Create and assign a token
-  const refreshToken = await JWTHandler.genRefreshToken(authUser._id);
-
-  const accessToken = await JWTHandler.genAccessToken(authUser.email);
-
-  authUser.refreshToken = refreshToken;
-
-  // saving refresh-token in database
-  await authUser.save(async (error, savedUser) => {
-    if (savedUser) {
-      return res
-        .status(200)
-        .header(ACCESS_TOKEN, accessToken)
-        .header(REFRESH_TOKEN, refreshToken)
-        .json({
-          status: "success",
-          message: "User has been logged in successfully",
-        });
-    }
-    // Print the error and sent back failed response
-    console.log(error);
-    return res.status(403).json({
-      status: "failed",
-      message: "Unable to login please try later",
-    });
-  });
+  loginUser(authUser, loginAsAdmin, EMAIL_KEY, res, false);
 };
 
-module.exports.verifyToken = async (req, res) => {
+module.exports.verifyAccByToken = async (req, res) => {
   // console.log("Verifying user account");
   const token = req.query.t;
 
@@ -168,7 +181,7 @@ module.exports.verifyToken = async (req, res) => {
   });
 };
 
-module.exports.resendToken = async (req, res) => {
+module.exports.resendAccVerificatinToken = async (req, res) => {
   console.log("Resend verification token");
 
   // check if user exists
@@ -333,7 +346,7 @@ module.exports.resetPassword = async (req, res) => {
 };
 
 module.exports.refreshTokens = async (req, res) => {
-  const authUser = await Auth.findOne({
+  var authUser = await Auth.findOne({
     _id: req.tokenData.user_id,
   });
 
@@ -343,30 +356,22 @@ module.exports.refreshTokens = async (req, res) => {
       message: "Invalid user",
     });
 
+  // check if refresh token is equal to what we have in the database
   if (authUser.refreshToken === req.refreshToken) {
-    const newAccessToken = await JWTHandler.genAccessToken(authUser.email);
-    const newRefreshToken = await JWTHandler.genRefreshToken(authUser._id);
-
-    authUser.refreshToken = newRefreshToken;
-
-    await authUser.save(async (error, savedUser) => {
-      if (savedUser) {
-        return res
-          .status(200)
-          .header(ACCESS_TOKEN, newAccessToken)
-          .header(REFRESH_TOKEN, newRefreshToken)
-          .json({
-            status: "success",
-            message: "Tokens have been refreshed",
-          });
-      }
-      // Print the error and sent back failed response
-      console.log(error);
+    if (authUser.provider === EMAIL_KEY) {
+      _generateNewTokensAndSendBackToClient(authUser, res);
+    } else if (authUser.provider === GOOGLE_KEY) {
+      _generateNewTokensAndSendBackToClient(authUser, res);
+      // _refreshGoogleAccessToken(authUser, res);
+    } else if (authUser.provider === FACEBOOK_KEY) {
+      _refreshFbAccessToken(authUser, res);
+    } else {
+      console.log(`Invalid provider type ${authUser.provider}`);
       return res.status(403).json({
         status: "failed",
         message: "Unable to refresh the token, please try later",
       });
-    });
+    }
   } else
     return res.status(400).json({
       status: "failed",
@@ -374,10 +379,12 @@ module.exports.refreshTokens = async (req, res) => {
     });
 };
 
+// Helper method
 module.exports.verifyAccessToken = (refreshToken) => {
   return JWTHandler.verifyAccessToken(refreshToken);
 };
 
+// Helper method
 module.exports.verifyRefreshToken = (refreshToken) => {
   return JWTHandler.verifyRefreshToken(refreshToken);
 };
@@ -496,6 +503,206 @@ async function _comparePasswords(password, hashedPassword) {
   const validPass = await bcrypt.compare(password, hashedPassword);
   return validPass;
 }
+
+async function getResponseFromURL(url) {
+  const res = await Axios.get(url);
+  return res.data;
+}
+
+async function tryRegisterWithFacebook(fbUser, res, accessToken) {
+  const authUser = new Auth({
+    email: fbUser.email,
+    emailVerified: true,
+    provider: FACEBOOK_KEY,
+    oauthToken: accessToken,
+  });
+
+  await authUser.save(async (error, savedUser) => {
+    if (savedUser) {
+      loginUser(savedUser, false, FACEBOOK_KEY, res, true);
+    } else {
+      // Print the error and sent back failed response
+      console.log(error);
+      return res.status(403).json({
+        status: "failed",
+        message: "Unable to register please try later",
+      });
+    }
+  });
+}
+
+async function tryOAuthLogin(authUser, res, accessToken, loginType) {
+  if (authUser.provider === loginType) {
+    authUser.oauthToken = accessToken;
+    loginUser(authUser, false, loginType, res, false);
+  } else {
+    return res.status(400).json({
+      status: "failed",
+      message: "Email is already used by other type of signin",
+    });
+  }
+}
+
+async function tryRegisterWithGoogle(googleUser, res, accessToken) {
+  const authUser = new Auth({
+    email: googleUser.email,
+    emailVerified: true,
+    provider: GOOGLE_KEY,
+    oauthToken: accessToken,
+  });
+
+  await authUser.save(async (error, savedUser) => {
+    if (savedUser) {
+      loginUser(savedUser, false, GOOGLE_KEY, res, true);
+    } else {
+      // Print the error and sent back failed response
+      console.log(error);
+      return res.status(403).json({
+        status: "failed",
+        message: "Unable to register please try later",
+      });
+    }
+  });
+}
+
+async function loginUser(authUser, loginAsAdmin, provider, res, isSignup) {
+  if (!authUser.emailVerified)
+    return res.status(403).json({
+      status: "failed",
+      message:
+        "Account not verified, please check your email and verify your account",
+    });
+
+  if (authUser.disabled)
+    return res.status(403).json({
+      status: "failed",
+      message:
+        "Your account has been disabled access for suspicious activity, please contact support for more information.",
+    });
+
+  // if user is not an admin and trying to login through admin login route
+  // throw error
+  // if user is an admin and trying to login through normal login route
+  // throw error
+  if ((!loginAsAdmin && authUser.admin) || (loginAsAdmin && !authUser.admin))
+    return res.status(400).json({
+      status: "failed",
+      message: "You are not allowed to login here.",
+    });
+
+  if (loginAsAdmin && !authUser.adminVerified)
+    return res.status(400).json({
+      status: "failed",
+      message:
+        "Your account is under review, please contact support for more information.",
+    });
+
+  //  Create and assign a token
+  const refreshToken = await JWTHandler.genRefreshToken(authUser._id);
+
+  const accessToken = await JWTHandler.genAccessToken(authUser.email);
+
+  authUser.refreshToken = refreshToken;
+
+  // saving refresh-token in database
+  await authUser.save(async (error, savedUser) => {
+    if (savedUser) {
+      return res
+        .status(200)
+        .header(ACCESS_TOKEN, accessToken)
+        .header(REFRESH_TOKEN, refreshToken)
+        .json(
+          provider === EMAIL_KEY
+            ? {
+                status: "success",
+                message: "Login success",
+              }
+            : {
+                status: "success",
+                message: `${provider} login success`,
+                signup: isSignup,
+              }
+        );
+    }
+    // Print the error and sent back failed response
+    console.log(error);
+    return res.status(403).json({
+      status: "failed",
+      message: "Unable to login please try later",
+    });
+  });
+}
+
+async function _getNewFbAccessToken(oldAccessToken) {
+  const tokenData = await getResponseFromURL(FB_OAUTH_REFRESH + oldAccessToken);
+  return tokenData;
+}
+
+async function _generateNewTokensAndSendBackToClient(authUser, res) {
+  const newAccessToken = await JWTHandler.genAccessToken(authUser.email);
+  const newRefreshToken = await JWTHandler.genRefreshToken(authUser._id);
+
+  authUser.refreshToken = newRefreshToken;
+
+  await authUser.save(async (error, savedUser) => {
+    if (savedUser) {
+      return res
+        .status(200)
+        .header(ACCESS_TOKEN, newAccessToken)
+        .header(REFRESH_TOKEN, newRefreshToken)
+        .json({
+          status: "success",
+          message: "Tokens have been refreshed",
+        });
+    }
+    // Print the error and sent back failed response
+    console.log(error);
+    return res.status(403).json({
+      status: "failed",
+      message: "Unable to refresh the token, please try later",
+    });
+  });
+}
+
+async function _refreshFbAccessToken(authUser, res) {
+  const newAccessTokenData = await _getNewFbAccessToken(authUser.oauthToken);
+  // check if there is any issue with refreshing the token
+  // if the user has revoked the permission for this application in fb dashboard
+  // then the user will be logged out here in the application too when he requests
+  // for a new accessToken
+  if (newAccessTokenData.error) {
+    console.log(
+      `Failed to get new accessToken from fb ${newAccessTokenData.message}`
+    );
+
+    if (
+      newAccessTokenData.message.toString().toLowerCase().includes("expire")
+    ) {
+      return res.status(511).json({
+        status: "failed",
+        message: newAccessTokenData.message,
+      });
+    }
+
+    return res.status(403).json({
+      status: "failed",
+      message: newAccessTokenData.message,
+    });
+  }
+
+  if (newAccessTokenData.access_token) {
+    // everything is fine, generate tokens and send back to client
+    authUser.oauthToken = newAccessTokenData.access_token;
+    _generateNewTokensAndSendBackToClient(authUser, res);
+  } else {
+    return res.status(403).json({
+      status: "failed",
+      message: "Unable to refresh token, oauth server error",
+    });
+  }
+}
+
+//function _refreshGoogleAccessToken(authUser, res) {}
 
 module.exports.getAuthUser = getAuthUser;
 module.exports.getAuthUserWithProjection = getAuthUserWithProjection;

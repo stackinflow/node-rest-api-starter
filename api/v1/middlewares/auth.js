@@ -229,6 +229,15 @@ module.exports.checkAdmin = async (req, res, next) => {
   next();
 };
 
+module.exports.checkOAuthAccessToken = async (req, res, next) => {
+  if (!req.body.accessToken || req.body.accessToken.toString().length < 64)
+    return res.status(400).json({
+      status: "failed",
+      message: "Invalid access token",
+    });
+  next();
+};
+
 function checkPassword(pwd) {
   // at least one numeric value
   var re = /[0-9]/;

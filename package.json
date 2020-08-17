@@ -1,5 +1,5 @@
 {
-  "name": "node-rest-api-auth",
+  "name": "node-rest-api-starter",
   "version": "1.0.0",
   "description": "Template for node.js REST API (includes auth)",
   "main": "index.js",

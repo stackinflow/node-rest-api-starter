@@ -65,6 +65,7 @@ Node.js, MongoDB
 
 ### Dependencies
 
+```
 1. @hapi/joi: ^17.1.1
 2. @sendgrid/mail: ^7.2.3
 3. axios: ^0.19.2
@@ -84,9 +85,11 @@ Node.js, MongoDB
 17. otp-generator: ^1.1.0
 18. pug: ^3.0.0
 19. socket.io: ^2.3.0
+```
 
 ### Dev dependencies
 
+```
 1. chai: ^4.2.0
 2. chai-http: ^4.3.0
 3. eslint: ^7.6.0
@@ -94,6 +97,7 @@ Node.js, MongoDB
 5. mocha: ^8.1.1
 6. nodemon: ^2.0.4
 7. prettier: ^2.0.5
+```
 
 ### Tests
 
@@ -370,7 +374,9 @@ const dev = {
 
 5. Install [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) and [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) in VS Code
 
-6. Run the project with nodemon
+6. Google and Facebook client details, [check out this article for generating client details](https://medium.com/@fayaz07/social-authentication-facebook-and-google-in-flutter-without-firebase-e3ca289ed50c)
+
+7. Run the project with nodemon
 
 ```bash
 npm run dev

@@ -11,18 +11,21 @@ const {
   checkRefreshToken,
   checkAccessToken,
   checkUser,
+  checkOAuthAccessToken,
 } = require("../middlewares/auth");
 const {
-  register,
-  login,
-  verifyToken,
-  resendToken,
+  registerWithEmail,
+  loginWithEmail,
+  resendAccVerificatinToken,
+  verifyAccByToken,
   updatePassword,
   sendPasswordResetCode,
   resendPasswordResetCode,
   resetPassword,
   refreshTokens,
   deleteAccount,
+  loginWithFB,
+  loginWithGoogle,
 } = require("../controllers/auth");
 const { internalServerError } = require("../utils/response");
 
@@ -33,7 +36,7 @@ router.post(
   validPassword,
   async (req, res) => {
     try {
-      await register(req, res, false);
+      await registerWithEmail(req, res, false);
     } catch (error) {
       internalServerError(res, error);
     }
@@ -47,7 +50,7 @@ router.post(
   validPassword,
   async (req, res) => {
     try {
-      await login(req, res, false);
+      await loginWithEmail(req, res, false);
     } catch (error) {
       internalServerError(res, error);
     }
@@ -56,7 +59,7 @@ router.post(
 
 router.get("/token/verify", async (req, res) => {
   try {
-    await verifyToken(req, res);
+    await verifyAccByToken(req, res);
   } catch (error) {
     internalServerError(res, error);
   }
@@ -69,7 +72,7 @@ router.post(
   validPassword,
   async (req, res) => {
     try {
-      await resendToken(req, res);
+      await resendAccVerificatinToken(req, res);
     } catch (error) {
       internalServerError(res, error);
     }
@@ -136,6 +139,22 @@ router.get(
 router.delete("/", checkAccessToken, validateAccessToken, async (req, res) => {
   try {
     await deleteAccount(req, res);
+  } catch (error) {
+    internalServerError(res, error);
+  }
+});
+
+router.post("/facebook", checkOAuthAccessToken, async (req, res) => {
+  try {
+    await loginWithFB(req, res);
+  } catch (error) {
+    internalServerError(res, error);
+  }
+});
+
+router.post("/google", checkOAuthAccessToken, async (req, res) => {
+  try {
+    await loginWithGoogle(req, res);
   } catch (error) {
     internalServerError(res, error);
   }
