@@ -61,7 +61,7 @@ function _getEnvironment() {
 }
 
 function checkIfEnvIsValid(env) {
-  if (!env || !env.db || !env.db.host || !env.db.name) {
+  if (!env || !env.db || !env.db.name) {
     return false;
   }
   return true;
