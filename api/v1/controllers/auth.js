@@ -34,7 +34,7 @@ const { default: Axios } = require("axios");
 module.exports.registerWithEmail = async (req, res, registerAsAdmin) => {
   if (registerAsAdmin === null) registerAsAdmin = false;
   // check if user exists
-  const authUser = await getAuthUser(req.body.email);
+  var authUser = await getAuthUser(req.body.email);
 
   if (authUser)
     return res
@@ -80,7 +80,7 @@ module.exports.loginWithEmail = async (req, res, loginAsAdmin) => {
   if (loginAsAdmin === null) loginAsAdmin = false;
 
   // check if user exists
-  const authUser = await getAuthUser(req.body.email);
+  var authUser = await getAuthUser(req.body.email);
 
   if (!authUser)
     return res
@@ -192,7 +192,7 @@ module.exports.resendAccVerificatinToken = async (req, res) => {
     - update password
 */
 module.exports.updatePassword = async (req, res) => {
-  const authUser = await getAuthUser(req.tokenData.email);
+  var authUser = await getAuthUser(req.tokenData.email);
 
   if (!authUser)
     return res.status(400).json({ status: "failed", message: "Invalid user" });
@@ -381,9 +381,9 @@ module.exports.verifyAccessToken = (refreshToken) => {
 };
 
 // Helper method
-module.exports.verifyRefreshToken = (refreshToken) => {
+function verifyRefreshToken(refreshToken) {
   return JWTHandler.verifyRefreshToken(refreshToken);
-};
+}
 
 /* Delete's user account
     - check if user exists  
@@ -726,12 +726,9 @@ async function loginUser(authUser, loginAsAdmin, provider, res, isSignup) {
         "Your account is under review, please contact support for more information.",
     });
 
-  //  Create and assign a token
-  const refreshToken = await JWTHandler.genRefreshToken(authUser._id);
+  authUser = await _createNewRefreshTokenIfAboutToExpire(authUser);
 
   const accessToken = await JWTHandler.genAccessToken(authUser.email);
-
-  authUser.refreshToken = refreshToken;
 
   // saving refresh-token in database
   await authUser.save(async (error, savedUser) => {
@@ -739,7 +736,7 @@ async function loginUser(authUser, loginAsAdmin, provider, res, isSignup) {
       return res
         .status(200)
         .header(ACCESS_TOKEN, accessToken)
-        .header(REFRESH_TOKEN, refreshToken)
+        .header(REFRESH_TOKEN, authUser.refreshToken)
         .json(
           provider === EMAIL_KEY
             ? {
@@ -775,16 +772,15 @@ async function _getNewFbAccessToken(oldAccessToken) {
 */
 async function _generateNewTokensAndSendBackToClient(authUser, res) {
   const newAccessToken = await JWTHandler.genAccessToken(authUser.email);
-  const newRefreshToken = await JWTHandler.genRefreshToken(authUser._id);
 
-  authUser.refreshToken = newRefreshToken;
+  authUser = await _createNewRefreshTokenIfAboutToExpire(authUser);
 
   await authUser.save(async (error, savedUser) => {
     if (savedUser) {
       return res
         .status(200)
         .header(ACCESS_TOKEN, newAccessToken)
-        .header(REFRESH_TOKEN, newRefreshToken)
+        .header(REFRESH_TOKEN, authUser.refreshToken)
         .json({
           status: "success",
           message: "Tokens have been refreshed",
@@ -817,15 +813,17 @@ async function _refreshFbAccessToken(authUser, res) {
     if (
       newAccessTokenData.message.toString().toLowerCase().includes("expire")
     ) {
-      return res.status(511).json({
+      return res.status(401).json({
         status: "failed",
-        message: newAccessTokenData.message,
+        message: "Session expired, please login",
+        error: newAccessTokenData.message,
       });
     }
 
     return res.status(403).json({
       status: "failed",
-      message: newAccessTokenData.message,
+      message: "Unable to get data from oauth server",
+      error: newAccessTokenData.message,
     });
   }
 
@@ -841,7 +839,30 @@ async function _refreshFbAccessToken(authUser, res) {
   }
 }
 
+/*
+  Verifies if the refreshToken is about to expire in less than a day
+  if true : creates new refreshToken
+  else : send the old token
+*/
+async function _createNewRefreshTokenIfAboutToExpire(authUser) {
+  if (authUser.refreshToken) {
+    const refreshTokenData = verifyRefreshToken(authUser.refreshToken).data;
+    var timeToExpiry = refreshTokenData.exp - Date.now() / 1000;
+
+    // looks like we have still more days for our refresh token to expire
+    if (timeToExpiry > 0) {
+      if (timeToExpiry / 86400 > 2) {
+        return authUser;
+      }
+    }
+  }
+  // token might expire soon, so creating new token
+  authUser.refreshToken = await JWTHandler.genRefreshToken(authUser._id);
+  return authUser;
+}
+
 //function _refreshGoogleAccessToken(authUser, res) {}
 
 module.exports.getAuthUser = getAuthUser;
 module.exports.getAuthUserWithProjection = getAuthUserWithProjection;
+module.exports.verifyRefreshToken = verifyRefreshToken;
