@@ -171,7 +171,7 @@ module.exports.validateRefreshToken = (req, res, next) => {
     req.tokenData = verificationResult.data;
     next();
   } else if (verificationResult.error.toString().includes(EXPIRED)) {
-    return res.status(511).json({
+    return res.status(401).json({
       status: "failed",
       message: "User session expired, login again",
     });
