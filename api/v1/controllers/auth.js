@@ -23,64 +23,14 @@ const {
 } = require("../utils/constants");
 const { default: Axios } = require("axios");
 
-// facebook login
-module.exports.loginWithFB = async (req, res) => {
-  // sending access token to server to verify if the token is valid and return the data
-  const userData = await getResponseFromURL(
-    FB_OAUTH_URL + req.body.accessToken
-  );
-
-  if (userData.error)
-    return res.status(403).json({
-      status: "failed",
-      message: userData.error.message,
-    });
-
-  if (!userData.email)
-    return res.status(403).json({
-      status: "failed",
-      message: "Failed to login with Facebook",
-    });
-
-  var authUser = await getAuthUser(userData.email);
-  if (authUser) {
-    // login with facebook
-    tryOAuthLogin(authUser, res, req.body.accessToken, FACEBOOK_KEY);
-  } else {
-    // register with facebook
-    tryRegisterWithFacebook(userData, res, req.body.accessToken);
-  }
-};
-
-// google login
-module.exports.loginWithGoogle = async (req, res) => {
-  // sending access token to server to verify if the token is valid and return the data
-  const userData = await getResponseFromURL(
-    GOOGLE_OAUTH_URL + req.body.accessToken
-  );
-
-  if (userData.error)
-    return res.status(403).json({
-      status: "failed",
-      message: userData.error.error_description,
-    });
-
-  if (!userData.email)
-    return res.status(403).json({
-      status: "failed",
-      message: "Failed to login with Google",
-    });
-
-  var authUser = await getAuthUser(userData.email);
-  if (authUser) {
-    // login with facebook
-    tryOAuthLogin(authUser, res, req.body.accessToken, GOOGLE_KEY);
-  } else {
-    // register with facebook
-    tryRegisterWithGoogle(userData, res, req.body.accessToken);
-  }
-};
-
+/* User registration with email   
+    - check if email is existing/email being used by another provider
+    - if existing then send conflict response
+    - if not existing, create a hashed password using [bcrypt]
+    - save the user in the database
+    - send an account verification email to the respective email
+    - [ERROR] if failed to save user in db, send an error response
+*/
 module.exports.registerWithEmail = async (req, res, registerAsAdmin) => {
   if (registerAsAdmin === null) registerAsAdmin = false;
   // check if user exists
@@ -120,6 +70,12 @@ module.exports.registerWithEmail = async (req, res, registerAsAdmin) => {
   });
 };
 
+/* User login with email   
+    - fetch user data
+    - [ERROR] if user not found in db, send an error response
+    - compare password and hashedpassword using bcrypt
+    - try login
+*/
 module.exports.loginWithEmail = async (req, res, loginAsAdmin) => {
   if (loginAsAdmin === null) loginAsAdmin = false;
 
@@ -145,8 +101,14 @@ module.exports.loginWithEmail = async (req, res, loginAsAdmin) => {
   loginUser(authUser, loginAsAdmin, EMAIL_KEY, res, false);
 };
 
+/* Verify user's account   
+    - get the token from query
+    - [ERROR] if not found, send an error response
+    - send the token for verification
+    - if verified, then update the status in db
+    - [ERROR] if not verified, send an error response
+*/
 module.exports.verifyAccByToken = async (req, res) => {
-  // console.log("Verifying user account");
   const token = req.query.t;
 
   if (!token)
@@ -181,10 +143,15 @@ module.exports.verifyAccByToken = async (req, res) => {
   });
 };
 
+/* Resending account verification token
+    - check if user exists  
+    - [ERROR] if not found, send an error response
+    - [ERROR] if already verified, send an error response
+    - compare passwords
+    - [ERROR] passwords do not match, send an error response
+    - send new token for verification
+*/
 module.exports.resendAccVerificatinToken = async (req, res) => {
-  console.log("Resend verification token");
-
-  // check if user exists
   const authUser = await getAuthUser(req.body.email);
 
   if (!authUser)
@@ -215,6 +182,15 @@ module.exports.resendAccVerificatinToken = async (req, res) => {
   });
 };
 
+/* Update account's password
+    - check if user exists  
+    - [ERROR] if not found, send an error response
+    - compare passwords
+    - [ERROR] passwords do not match, send an error response
+    - [ERROR] old and new passwords are same, send an error response
+    - hash new password
+    - update password
+*/
 module.exports.updatePassword = async (req, res) => {
   const authUser = await getAuthUser(req.tokenData.email);
 
@@ -262,10 +238,12 @@ module.exports.updatePassword = async (req, res) => {
   });
 };
 
+/* Sending password reset code
+    - check if user exists  
+    - [ERROR] if not found, send an error response
+    - send new password reset otp to email
+*/
 module.exports.sendPasswordResetCode = async (req, res) => {
-  console.log("Sending password reset code");
-
-  // check if user exists
   const authUser = await getAuthUser(req.body.email);
 
   if (!authUser)
@@ -280,10 +258,12 @@ module.exports.sendPasswordResetCode = async (req, res) => {
   });
 };
 
+/* Resending password reset code
+    - check if user exists  
+    - [ERROR] if not found, send an error response
+    - send new password reset otp to email
+*/
 module.exports.resendPasswordResetCode = async (req, res) => {
-  // console.log("Sending password reset code");
-
-  // check if user exists
   const authUser = await getAuthUser(req.body.email);
 
   if (!authUser)
@@ -298,6 +278,15 @@ module.exports.resendPasswordResetCode = async (req, res) => {
   });
 };
 
+/* Reset password 
+    - verify otp
+    - check if user exists  
+    - [ERROR] if not found/invalid, send an error response
+    - check if new and old passwords are same
+    - delete the otp form database
+    - hash the password
+    - update the password
+*/
 module.exports.resetPassword = async (req, res) => {
   const verificationToken = await verifyOTP(req.body.otp);
   if (!verificationToken)
@@ -345,6 +334,13 @@ module.exports.resetPassword = async (req, res) => {
   });
 };
 
+/* Create new access token
+    - check if user exists  
+    - [ERROR] if not found/invalid, send an error response
+    - check if refresh token sent by user and the one present in db are same
+    - [ERROR] if not same, send an error response
+    - generate new tokens, verifying  provider access
+*/
 module.exports.refreshTokens = async (req, res) => {
   var authUser = await Auth.findOne({
     _id: req.tokenData.user_id,
@@ -375,7 +371,7 @@ module.exports.refreshTokens = async (req, res) => {
   } else
     return res.status(400).json({
       status: "failed",
-      message: "Invalid/malformed refreshToken",
+      message: "Invalid/malformed refresh token",
     });
 };
 
@@ -389,6 +385,11 @@ module.exports.verifyRefreshToken = (refreshToken) => {
   return JWTHandler.verifyRefreshToken(refreshToken);
 };
 
+/* Delete's user account
+    - check if user exists  
+    - [ERROR] if not found/invalid, send an error response
+    - delete account
+*/
 module.exports.deleteAccount = async (req, res) => {
   const authUser = await getAuthUser(req.tokenData.email);
   await Auth.deleteOne({ email: authUser.email }, (error) => {
@@ -404,6 +405,9 @@ module.exports.deleteAccount = async (req, res) => {
   });
 };
 
+/* Fetch all users
+    - fetch users and send in resposne
+*/
 module.exports.getAllUsers = async (res) => {
   await Auth.find({ admin: false }, { email: 1 }, (error, users) => {
     if (error)
@@ -418,6 +422,9 @@ module.exports.getAllUsers = async (res) => {
   });
 };
 
+/* Fetch all admins
+    - fetch admins and send in resposne
+*/
 module.exports.getAllAdmins = async (res) => {
   await Auth.find({ admin: true }, { email: 1 }, (error, admins) => {
     if (error)
@@ -432,20 +439,101 @@ module.exports.getAllAdmins = async (res) => {
   });
 };
 
+/* 
+  Disable user account
+*/
 module.exports.disableUser = async (req, res) => {
   await _disableOrEnableUser(req, res, true);
 };
 
+/* 
+  Enable user account
+*/
 module.exports.enableUser = async (req, res) => {
   await _disableOrEnableUser(req, res, false);
 };
 
-/*
-
-  Helper functions
-
+/* Facebook login   
+    - sending access token to server to verify if the token is valid 
+    - if it's valid, then we will get user data in return
+    - [ERROR] if it's not valid, then we will just send an error response to the client
+    - check if user is existing/email being used by another account
+    - if existing, try login
+    - if new, try register
 */
+module.exports.loginWithFB = async (req, res) => {
+  const userData = await getResponseFromURL(
+    FB_OAUTH_URL + req.body.accessToken
+  );
 
+  if (userData.error)
+    return res.status(403).json({
+      status: "failed",
+      message: userData.error.message,
+    });
+
+  if (!userData.email)
+    return res.status(403).json({
+      status: "failed",
+      message: "Failed to login with Facebook",
+    });
+
+  var authUser = await getAuthUser(userData.email);
+  if (authUser) {
+    // login with facebook
+    tryOAuthLogin(authUser, res, req.body.accessToken, FACEBOOK_KEY);
+  } else {
+    // register with facebook
+    tryRegisterWithFacebook(userData, res, req.body.accessToken);
+  }
+};
+
+/* Google login   
+    - sending access token to server to verify if the token is valid 
+    - if it's valid, then we will get user data in return
+    - [ERROR] if it's not valid, then we will just send an error response to the client
+    - check if user is existing/email being used by another account
+    - if existing, try login
+    - if new, try register
+*/
+module.exports.loginWithGoogle = async (req, res) => {
+  // sending access token to server to verify if the token is valid and return the data
+  const userData = await getResponseFromURL(
+    GOOGLE_OAUTH_URL + req.body.accessToken
+  );
+
+  if (userData.error)
+    return res.status(403).json({
+      status: "failed",
+      message: userData.error.error_description,
+    });
+
+  if (!userData.email)
+    return res.status(403).json({
+      status: "failed",
+      message: "Failed to login with Google",
+    });
+
+  var authUser = await getAuthUser(userData.email);
+  if (authUser) {
+    // login with google
+    tryOAuthLogin(authUser, res, req.body.accessToken, GOOGLE_KEY);
+  } else {
+    // register with google
+    tryRegisterWithGoogle(userData, res, req.body.accessToken);
+  }
+};
+
+/*
+  -------------------------------------------------------------------------------------
+  Helper functions
+  -------------------------------------------------------------------------------------
+*/
+/* Disable or enable user   
+    - check if user exists
+    - check already disabled/enabled
+    - update status in db
+*/
 async function _disableOrEnableUser(req, res, disable) {
   var authUser = await getAuthUserById(req.body.userId);
   if (!authUser)
@@ -477,38 +565,63 @@ async function _disableOrEnableUser(req, res, disable) {
   });
 }
 
+/* 
+  Fetches authUser instance from db by userId
+*/
 async function getAuthUserById(userId) {
   const emailExist = await Auth.findById(userId);
   return emailExist;
 }
 
+/* 
+  Fetches authUser instance from db by email only specified fields
+*/
 async function getAuthUserWithProjection(email, project) {
   const emailExist = await Auth.findOne({ email: email }, project);
   return emailExist;
 }
 
+/* 
+  Fetches authUser instance from db by email
+*/
 async function getAuthUser(email) {
-  const emailExist = await Auth.findOne({ email: email });
+  const emailExist = await Auth.findOne(
+    { email: email },
+    { createdAt: 0, updatedAt: 0 }
+  );
   return emailExist;
 }
 
+/* 
+  Encrypt password and return the hashed password
+*/
 async function _hashThePassword(password) {
-  // Hash the password
   const salt = await bcrypt.genSalt(10);
   const hashPassword = await bcrypt.hash(password, salt);
   return hashPassword;
 }
 
+/* 
+  Compare encrypted password and plain password
+*/
 async function _comparePasswords(password, hashedPassword) {
   const validPass = await bcrypt.compare(password, hashedPassword);
   return validPass;
 }
 
+/* 
+  Makes a GET request to the specified URL and returns data
+*/
 async function getResponseFromURL(url) {
   const res = await Axios.get(url);
   return res.data;
 }
 
+/* Registers the user with Facebook   
+    - creates a new auth user instance and saves in db
+    - on successful save, login the user
+    - [ERROR] failed to save, send error response
+*/
 async function tryRegisterWithFacebook(fbUser, res, accessToken) {
   const authUser = new Auth({
     email: fbUser.email,
@@ -525,24 +638,17 @@ async function tryRegisterWithFacebook(fbUser, res, accessToken) {
       console.log(error);
       return res.status(403).json({
         status: "failed",
-        message: "Unable to register please try later",
+        message: "Unable to register with Facebook, please try later",
       });
     }
   });
 }
 
-async function tryOAuthLogin(authUser, res, accessToken, loginType) {
-  if (authUser.provider === loginType) {
-    authUser.oauthToken = accessToken;
-    loginUser(authUser, false, loginType, res, false);
-  } else {
-    return res.status(400).json({
-      status: "failed",
-      message: "Email is already used by other type of signin",
-    });
-  }
-}
-
+/* Registers the user with Google   
+    - creates a new auth user instance and saves in db
+    - on successful save, login the user
+    - [ERROR] failed to save, send error response
+*/
 async function tryRegisterWithGoogle(googleUser, res, accessToken) {
   const authUser = new Auth({
     email: googleUser.email,
@@ -559,12 +665,35 @@ async function tryRegisterWithGoogle(googleUser, res, accessToken) {
       console.log(error);
       return res.status(403).json({
         status: "failed",
-        message: "Unable to register please try later",
+        message: "Unable to register with Google, please try later",
       });
     }
   });
 }
 
+/* Logs in the user - OAuth
+    - save the oauth access token
+    - login user
+*/
+async function tryOAuthLogin(authUser, res, accessToken, loginProvider) {
+  if (authUser.provider === loginProvider) {
+    authUser.oauthToken = accessToken;
+    loginUser(authUser, false, loginProvider, res, false);
+  } else {
+    return res.status(400).json({
+      status: "failed",
+      message: "Email is used by other type of signin, please try again",
+    });
+  }
+}
+
+/* Login user   
+    - check if email is verified
+    - check if access is denied for the user
+    - [ERROR] if user tries to login with diff route then throw error(admin)
+    - generate access and refresh tokens 
+    - save tokens and send back to client
+*/
 async function loginUser(authUser, loginAsAdmin, provider, res, isSignup) {
   if (!authUser.emailVerified)
     return res.status(403).json({
@@ -574,7 +703,7 @@ async function loginUser(authUser, loginAsAdmin, provider, res, isSignup) {
     });
 
   if (authUser.disabled)
-    return res.status(403).json({
+    return res.status(401).json({
       status: "failed",
       message:
         "Your account has been disabled access for suspicious activity, please contact support for more information.",
@@ -633,11 +762,17 @@ async function loginUser(authUser, loginAsAdmin, provider, res, isSignup) {
   });
 }
 
+/* Gets new access tokens from Facebook server   
+    - make a get request and return data
+*/
 async function _getNewFbAccessToken(oldAccessToken) {
   const tokenData = await getResponseFromURL(FB_OAUTH_REFRESH + oldAccessToken);
   return tokenData;
 }
 
+/* 
+  Creates new access and refresh tokens and send back to client
+*/
 async function _generateNewTokensAndSendBackToClient(authUser, res) {
   const newAccessToken = await JWTHandler.genAccessToken(authUser.email);
   const newRefreshToken = await JWTHandler.genRefreshToken(authUser._id);
@@ -664,12 +799,16 @@ async function _generateNewTokensAndSendBackToClient(authUser, res) {
   });
 }
 
+/* 
+  Creates new access and refresh tokens and send back to client
+  - check if there is any issue with refreshing the token
+  - if the user has revoked the permission for this application in fb dashboard
+    then the user will be logged out here in the application too when he requests
+    for a new accessToken
+*/
 async function _refreshFbAccessToken(authUser, res) {
   const newAccessTokenData = await _getNewFbAccessToken(authUser.oauthToken);
-  // check if there is any issue with refreshing the token
-  // if the user has revoked the permission for this application in fb dashboard
-  // then the user will be logged out here in the application too when he requests
-  // for a new accessToken
+
   if (newAccessTokenData.error) {
     console.log(
       `Failed to get new accessToken from fb ${newAccessTokenData.message}`

@@ -51,15 +51,18 @@ const config = {
 // 'dev' or 'test' or 'prod'
 const env = _getEnvironment();
 
+// pulls the [NODE_ENV] string from .env and creates environment config file
+// if no valid env string is placed in .env then dev environment will be choosen as default
 function _getEnvironment() {
   const tEnv = process.env.NODE_ENV;
   if (tEnv == "prod" || tEnv == "dev" || tEnv == "test") return tEnv;
   console.log(
-    "Warning: Invalid environment config in .env for key NODE_ENV\nPicking dev environment for running server"
+    "[Warning]: Invalid environment config in .env for key NODE_ENV\nPicking dev environment for running server"
   );
   return "dev";
 }
 
+// this method performs basic checks to check if environment config is valid
 function checkIfEnvIsValid(env) {
   if (!env || !env.db || !env.db.name) {
     return false;
