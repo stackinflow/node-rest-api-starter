@@ -268,7 +268,7 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Basic eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ0b2RvLTcuaGVyb2t1YXBwLmNvbSIsInN1YiI6ImFwaV9SZWZyZXNoVG9rZW4iLCJpc3MiOiJ0b2RvLTcuaGVyb2t1YXBwLmNvbSIsInVzZXJfaWQiOiI1ZjMxMmMzOTNlNjlhZjYzMDhmMjk5YjQiLCJpYXQiOjE1OTcwNjI5NjcsImV4cCI6MTU5NzkyNjk2N30.gSMNtNsLWSO33sITo0u4EJ5aoZTzbmpF-016AlTaGwtMCgw0VBOceqPAfOcHggTZ28p2jLImfIJYzZuw_6qqKSA3Lg9EHciUEcAM3-PM5TtFB9jxA3-7Z1Mky83hiCm7PZY8P7M_8AVU62iCj6JfTDF9uYFwLP4LjDnv_9zoeDZBeO5sW_nDJE221Ho5Np7Zhtlm8BTjBcv_slR6n3oX2N2df6fo8cwn6wpmdwHsacTdxqTQfdd1QuD1wRFIIDsatT51AZMlYvIROCp3ev15fmIWoGzHa3enb80eqiicty-R_O9qOyub3TaEE7QH9pgPrR3IixS5TI4e4Asz4YX5uA",
+								"value": "Basic eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJUb2tlblVzZXJzIiwic3ViIjoiYXBpX1JlZnJlc2hUb2tlbiIsImlzcyI6IkZheWF6IiwidXNlcl9pZCI6IjVmM2E4ZTVhOTc3ODg1Nzc5NmMwYWI0NyIsImlhdCI6MTU5NzY3MzA1MCwiZXhwIjoxNTk4NTM3MDUwfQ.uiUIKD3V6Vp58-k-yEGyEkmhjII5_vy-lUjAlBTdjDnF6HjS2Rt_vOhr3r61dqT_fqSoJBXz1CZBhh5b5RFShLMvcFEFdNThDhWxcDsv-vrM1ec3NucvX9ofQqlejraDCKlPLAd0GlW-pNjLta0ljHDioKxhLWQ-gteszbEBXSrnWSVKaCA_mLaU6w1JIZEBph8ZgBhd1xFD6Pe27sM8_FLbn_TWZ_Z-3pmOeDhSkbFl5XF9aHcjad39Nt7epBYfzNyWUZl9MN_XGmjN49OH2byYcSUaCVKMiOpwK1ET-0MzW_eu-_nqXCHEAmdE9vJdVbbuaZFN1T_LeeVvaRwzqg",
 								"type": "text"
 							}
 						],
@@ -320,6 +320,66 @@
 								"v1",
 								"auth",
 								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "facebook login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"accessToken\":\"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:6000/api/v1/auth/facebook",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"facebook"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "google login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"accessToken\":\"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:6000/api/v1/auth/google",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"google"
 							]
 						}
 					},

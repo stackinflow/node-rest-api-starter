@@ -15,10 +15,11 @@ const {
   BEARER,
 } = require("../utils/constants");
 
-// register fields validation middleware
-// using register fields validation to login and
-// resending the verification token also
-// as the body is same for all
+/* register fields validation middleware
+    (using register fields validation to login and
+    resending the verification token also
+    as the body is same for all)
+*/
 module.exports.validateRegisterFields = (req, res, next) => {
   const { error } = registerValidation(req.body);
   if (error)
@@ -31,6 +32,9 @@ module.exports.validateRegisterFields = (req, res, next) => {
   next();
 };
 
+/* 
+  password validation middleware
+*/
 module.exports.validPassword = (req, res, next) => {
   //compare both password field value
   const pwd = req.body.password;
@@ -45,6 +49,9 @@ module.exports.validPassword = (req, res, next) => {
     });
 };
 
+/* 
+  passwords validation middleware(in case of update password)
+*/
 module.exports.validPasswords = (req, res, next) => {
   const pwd1 = req.body.oldPassword;
   const pwd2 = req.body.newPassword;
@@ -67,6 +74,9 @@ module.exports.validPasswords = (req, res, next) => {
     });
 };
 
+/* 
+  email validation middleware
+*/
 module.exports.validEmail = (req, res, next) => {
   const { error } = emailValidation(req.body);
   if (error) {
@@ -79,6 +89,9 @@ module.exports.validEmail = (req, res, next) => {
   next();
 };
 
+/* 
+  validation of otp and new password middleware
+*/
 module.exports.validResetFields = (req, res, next) => {
   const { error } = resetPasswordValidation(req.body);
   if (error) {
@@ -91,44 +104,10 @@ module.exports.validResetFields = (req, res, next) => {
   next();
 };
 
-module.exports.validateRefreshToken = (req, res, next) => {
-  const verificationResult = verifyRefreshToken(req.refreshToken);
-  if (verificationResult.valid) {
-    req.tokenData = verificationResult.data;
-    next();
-  } else if (verificationResult.error.toString().includes(EXPIRED)) {
-    return res.status(511).json({
-      status: "failed",
-      message: "User session expired, login again",
-    });
-  } else {
-    return res.status(401).json({
-      status: "failed",
-      message: "Invalid token",
-    });
-  }
-};
-
-module.exports.validateAccessToken = (req, res, next) => {
-  const verificationResult = verifyAccessToken(req.accessToken);
-  if (verificationResult.valid) {
-    req.tokenData = verificationResult.data;
-    next();
-  } else if (verificationResult.error.toString().includes(EXPIRED)) {
-    return res.status(511).json({
-      status: "failed",
-      message: "User session expired, login again",
-    });
-  } else {
-    return res.status(401).json({
-      status: "failed",
-      message: "Invalid token",
-    });
-  }
-};
-
-// these methods will just check the availability of tokens,
-// they won't verify if they are valid or expired
+/*
+ these methods will just check the availability of tokens,
+ they won't verify if they are valid or expired
+*/
 module.exports.checkRefreshToken = (req, res, next) => {
   if (!req.header(AUTHORIZATION_HEADER))
     return res.status(400).json({
@@ -153,6 +132,10 @@ module.exports.checkRefreshToken = (req, res, next) => {
     });
 };
 
+/*
+ these methods will just check the availability of tokens,
+ they won't verify if they are valid or expired
+*/
 module.exports.checkAccessToken = (req, res, next) => {
   if (!req.header(AUTHORIZATION_HEADER))
     return res.status(400).json({
@@ -177,7 +160,56 @@ module.exports.checkAccessToken = (req, res, next) => {
     });
 };
 
-module.exports.checkUser = async (req, res, next) => {
+/* 
+  refreshToken validation middleware
+   - handles expiry of refresh token, in this case the user has to re-login to the application
+   - if the refresh token is not valid, then Bad request status code is sent back
+*/
+module.exports.validateRefreshToken = (req, res, next) => {
+  const verificationResult = verifyRefreshToken(req.refreshToken);
+  if (verificationResult.valid) {
+    req.tokenData = verificationResult.data;
+    next();
+  } else if (verificationResult.error.toString().includes(EXPIRED)) {
+    return res.status(511).json({
+      status: "failed",
+      message: "User session expired, login again",
+    });
+  } else {
+    return res.status(400).json({
+      status: "failed",
+      message: "Invalid token",
+    });
+  }
+};
+
+/* 
+  accessToken validation middleware
+   - handles expiry of access token, in this case the user has to get a new access token
+   - if the access token is not valid, then Bad request status code is sent back
+*/
+module.exports.validateAccessToken = (req, res, next) => {
+  const verificationResult = verifyAccessToken(req.accessToken);
+  if (verificationResult.valid) {
+    req.tokenData = verificationResult.data;
+    next();
+  } else if (verificationResult.error.toString().includes(EXPIRED)) {
+    return res.status(401).json({
+      status: "failed",
+      message: "Access token expired",
+    });
+  } else {
+    return res.status(400).json({
+      status: "failed",
+      message: "Invalid token",
+    });
+  }
+};
+
+/*
+  Check if user's access has been revoked by the admin
+*/
+module.exports.checkUserAccess = async (req, res, next) => {
   var authUser = await getAuthUserWithProjection(req.tokenData.email, {
     _id: 1,
     disabled: 1,
@@ -198,7 +230,10 @@ module.exports.checkUser = async (req, res, next) => {
   next();
 };
 
-module.exports.checkAdmin = async (req, res, next) => {
+/*
+  Check if user's access has been revoked by the admin/account is verified
+*/
+module.exports.checkAdminAccess = async (req, res, next) => {
   var authUser = await getAuthUserWithProjection(req.tokenData.email, {
     _id: 1,
     admin: 1,
@@ -229,6 +264,9 @@ module.exports.checkAdmin = async (req, res, next) => {
   next();
 };
 
+/*
+  Check if oauth access token is valid
+*/
 module.exports.checkOAuthAccessToken = async (req, res, next) => {
   if (!req.body.accessToken || req.body.accessToken.toString().length < 64)
     return res.status(400).json({
@@ -238,6 +276,9 @@ module.exports.checkOAuthAccessToken = async (req, res, next) => {
   next();
 };
 
+/*
+  password check
+*/
 function checkPassword(pwd) {
   // at least one numeric value
   var re = /[0-9]/;

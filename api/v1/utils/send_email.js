@@ -15,6 +15,7 @@ class Email {
   }
 
   _sendEmail(mailOptions) {
+    // set the api key
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
     const msg = {
@@ -45,8 +46,11 @@ class Email {
   accVerification(token, email) {
     console.log("sending mail");
     try {
+      // this host will be used for sending the account verification link to the user
+      // when the user registers
       const localHost = process.env.host;
 
+      // this will render the html placing the link and host wherever specified
       const render = pug.renderFile(__dirname + "/templates/verify_email.pug", {
         link: `${localHost}/api/v1/auth/token/verify?t=${token}`,
         host: localHost,
