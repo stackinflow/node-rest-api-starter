@@ -2,7 +2,24 @@
 
 <img src="https://raw.githubusercontent.com/stackinflow/node-rest-api-starter/master/assets/banner-node-rest-api.png">
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/215290ffb548419bbff773ca8abcdb3d)](https://app.codacy.com/gh/stackinflow/node-rest-api-starter?utm_source=github.com&utm_medium=referral&utm_content=stackinflow/node-rest-api-starter&utm_campaign=Badge_Grade_Dashboard)
+
 This repository is a template to avoid rewriting all the basic authentication code for REST API's built with Express.js, MongoDB.
+
+## Why this template
+
+- This repository includes setup of all basic things required to start a MEAN/MERN stack backend
+- Environments setup
+- Connection to database(MongoDB)
+- Admin routes for handling users
+- Authentication - fully handled
+- Social auth includes Facebook and Google OAuth2 authorization
+- Provides clean structured code
+- Mocha Tests to ensure API is working
+- Email templates for account verification and password reset
+- Token based email verification and OTP based password reset
+- Body field validators
+
 
 ## Project architecture & Directories Structure
 
@@ -287,18 +304,18 @@ npm install
 ```
 
 2. Setup public & private keys for `Access` and `Refresh` tokens
-   Open your terminal and type the below commands to create secure private key and extracting public key from the private key.
+   Open your terminal and type the below commands to create secure private key and extracting public key from the private key. We're using a 512 bit long key, as the length increases the size of jwt also increases.
 
 Creating private key for access token
 
 ```bash
-openssl genrsa -out private.pem 2048
+openssl genrsa -out private.pem 512
 ```
 
 Expected output:
 
 ```
-Generating RSA private key, 2048 bit long modulus (2 primes)
+Generating RSA private key, 512 bit long modulus (2 primes)
 ....................................................+++++
 .+++++
 ```
@@ -318,13 +335,13 @@ writing RSA key
 Creating private key for refresh token
 
 ```bash
-openssl genrsa -out privater.pem 2048
+openssl genrsa -out privater.pem 512
 ```
 
 Expected output:
 
 ```
-Generating RSA private key, 2048 bit long modulus (2 primes)
+Generating RSA private key, 512 bit long modulus (2 primes)
 ....................................................+++++
 .+++++
 ```
@@ -393,10 +410,6 @@ npm start
 ```bash
 npm test
 ```
-
-## Features
-
-1.  Authentication
 
 ## Authors
 
