@@ -21,6 +21,7 @@ const {
   GOOGLE_KEY,
   FB_OAUTH_REFRESH,
 } = require("../utils/constants");
+const { createUser } = require("../controllers/user");
 const { default: Axios } = require("axios");
 
 /* User registration with email   
@@ -55,6 +56,7 @@ module.exports.registerWithEmail = async (req, res, registerAsAdmin) => {
   await newAuthUser.save(async (error, savedUser) => {
     if (savedUser) {
       await sendVerificationMail(savedUser._id, savedUser.email);
+      await _createUserDocument(savedUser);
       return res.status(201).json({
         status: "success",
         message:
@@ -632,6 +634,9 @@ async function tryRegisterWithFacebook(fbUser, res, accessToken) {
 
   await authUser.save(async (error, savedUser) => {
     if (savedUser) {
+      savedUser.firstName = fbUser.first_name;
+      savedUser.lastName = fbUser.last_name;
+      await _createUserDocument(savedUser);
       loginUser(savedUser, false, FACEBOOK_KEY, res, true);
     } else {
       // Print the error and sent back failed response
@@ -659,6 +664,10 @@ async function tryRegisterWithGoogle(googleUser, res, accessToken) {
 
   await authUser.save(async (error, savedUser) => {
     if (savedUser) {
+      savedUser.firstName = googleUser.name.toString().split(" ")[0];
+      savedUser.lastName = googleUser.name.toString().split(" ")[1];
+      savedUser.photoUrl = googleUser.picture;
+      await _createUserDocument(savedUser);
       loginUser(savedUser, false, GOOGLE_KEY, res, true);
     } else {
       // Print the error and sent back failed response
@@ -862,6 +871,13 @@ async function _createNewRefreshTokenIfAboutToExpire(authUser) {
 }
 
 //function _refreshGoogleAccessToken(authUser, res) {}
+
+/*
+  Create user document(only done while registration)
+*/
+async function _createUserDocument(userData) {
+  await createUser(userData);
+}
 
 module.exports.getAuthUser = getAuthUser;
 module.exports.getAuthUserWithProjection = getAuthUserWithProjection;

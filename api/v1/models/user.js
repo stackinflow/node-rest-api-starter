@@ -1,0 +1,34 @@
+const mongoose = require("mongoose");
+
+const userSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      unique: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    firstName: String,
+    lastName: String,
+    gender: String,
+    age: Number,
+    knownLanguages: {
+      type: String,
+    },
+    profession: String,
+    location: Object,
+    latitude: Number,
+    longitude: Number,
+    photoUrl: String,
+    symptoms: String,
+  },
+  {
+    timestamps: true,
+  }
+);
+
+module.exports = mongoose.model("user", userSchema);

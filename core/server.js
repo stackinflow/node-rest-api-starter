@@ -7,6 +7,7 @@ const path = require("path");
 
 // importing user routes
 const authRoute = require("../api/v1/routes/auth");
+const userRoute = require("../api/v1/routes/user");
 
 // importing admin routes
 const adminAuthRoute = require("../api/v1/routes/admin/auth");
@@ -53,6 +54,8 @@ function _setRoutes(app) {
   console.log("Setting up routes for api v1");
   //  auth middleware
   app.use("/api/v1/auth", authRoute);
+  //  user middleware
+  app.use("/api/v1/user", userRoute);
 
   // admin routes
   // auth middleware
