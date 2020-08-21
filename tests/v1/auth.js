@@ -15,7 +15,7 @@ var data = {
 
 const baseUrl = "/api/v1/auth";
 var verificationToken;
-var accessToken, refreshToken, newRefreshToken;
+var accessToken, refreshToken;
 
 module.exports = (chai, server) => {
   // because they come with mocha in command line
@@ -312,26 +312,11 @@ module.exports = (chai, server) => {
           var tAccessToken = response.header[ACCESS_TOKEN];
           tAccessToken.should.not.equal(accessToken);
 
-          var tRefreshToken = response.header[REFRESH_TOKEN];
-          tRefreshToken.should.not.equal(refreshToken);
+          // var tRefreshToken = response.header[REFRESH_TOKEN];
+          // tRefreshToken.should.not.equal(refreshToken);
 
           accessToken = response.header[ACCESS_TOKEN];
-          newRefreshToken = response.header[REFRESH_TOKEN];
-          done();
-        });
-    });
-
-    it("should not give new access token as refresh token is old one", (done) => {
-      chai
-        .request(server)
-        .get(baseUrl + "/token")
-        .set("Content-Type", "application/json")
-        .set(AUTHORIZATION_HEADER, BASIC + " " + refreshToken)
-        .end((err, response) => {
-          // console.log(response.body);
-          response.should.not.have.status(200);
-          response.should.not.have.header(ACCESS_TOKEN);
-          response.should.not.have.header(REFRESH_TOKEN);
+          refreshToken = response.header[REFRESH_TOKEN];
           done();
         });
     });
@@ -341,7 +326,7 @@ module.exports = (chai, server) => {
         .request(server)
         .get(baseUrl + "/token")
         .set("Content-Type", "application/json")
-        .set(AUTHORIZATION_HEADER, BEARER + " " + newRefreshToken)
+        .set(AUTHORIZATION_HEADER, BEARER + " " + refreshToken)
         .end((err, response) => {
           response.should.not.have.status(200);
           response.should.not.have.header(ACCESS_TOKEN);
@@ -355,20 +340,13 @@ module.exports = (chai, server) => {
         .request(server)
         .get(baseUrl + "/token")
         .set("Content-Type", "application/json")
-        .set(AUTHORIZATION_HEADER, BASIC + " " + newRefreshToken)
+        .set(AUTHORIZATION_HEADER, BASIC + " " + refreshToken)
         .end((err, response) => {
           response.should.have.status(200);
           response.should.have.header(ACCESS_TOKEN);
           response.should.have.header(REFRESH_TOKEN);
 
-          // var tRt = response.header[REFRESH_TOKEN];
-          // tRt.should.not.equal(newRefreshToken);
-
-          // var tAt = response.header[ACCESS_TOKEN];
-          // tAt.should.not.equal(accessToken);
-
           accessToken = response.header[ACCESS_TOKEN];
-          refreshToken = response.header[REFRESH_TOKEN];
           done();
         });
     });

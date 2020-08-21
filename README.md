@@ -2,7 +2,7 @@
 
 <img src="https://raw.githubusercontent.com/stackinflow/node-rest-api-starter/master/assets/banner-node-rest-api.png">
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/215290ffb548419bbff773ca8abcdb3d)](https://app.codacy.com/gh/stackinflow/node-rest-api-starter?utm_source=github.com&utm_medium=referral&utm_content=stackinflow/node-rest-api-starter&utm_campaign=Badge_Grade_Dashboard)
+[![stackinflow](https://img.shields.io/badge/stackinflow-opensource-brightgreen)](https://stackinflow.github.io/) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/215290ffb548419bbff773ca8abcdb3d)](https://app.codacy.com/gh/stackinflow/node-rest-api-starter?utm_source=github.com&utm_medium=referral&utm_content=stackinflow/node-rest-api-starter&utm_campaign=Badge_Grade_Dashboard) [![Build Status](https://github.com/stackinflow/node-rest-api-starter/workflows/Mocha-Tests/badge.svg)](https://github.com/stackinflow/node-rest-api-starter/actions)
 
 This repository is a template to avoid rewriting all the basic authentication code for REST API's built with Express.js, MongoDB.
 
@@ -19,7 +19,6 @@ This repository is a template to avoid rewriting all the basic authentication co
 - Email templates for account verification and password reset
 - Token based email verification and OTP based password reset
 - Body field validators
-
 
 ## Project architecture & Directories Structure
 
