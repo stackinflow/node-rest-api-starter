@@ -18,7 +18,6 @@ jobs:
       #   uses: supercharge/mongodb-github-action@1.3.0
       #   with:
       #     mongodb-version: ${{ matrix.mongodb-version }}
-      #     mongodb-replica-set: insert-replica-set-name
 
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
@@ -33,8 +32,8 @@ jobs:
             **/node_modules
           key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
 
-      - name: Start mongodb
-        run: mongod --fork --logpath /var/log/mongod.log
+      # - name: Start mongodb
+      #   run: mongod --fork --logpath /var/log/mongod.log
 
       - name: Create keys
         run: |
@@ -47,7 +46,7 @@ jobs:
       - name: Get repo secrets into environment file
         run: |
           touch .env
-          echo ${{ SECRETS }} >> .env
+          echo "${{ SECRETS.ENV_VARS }}" >> .env
 
       - run: npm ci
 
