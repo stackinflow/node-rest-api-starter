@@ -24,7 +24,8 @@ module.exports = (chai, server) => {
   /*eslint no-undef: "error"*/
   /*eslint no-unused-vars: "error"*/
 
-  before(() => {
+  before(function () {
+    this.timeout(5000);
     /* eslint-disable */
     return new Promise((resolve, reject) => {
       Auth.deleteMany().then((data) => {
