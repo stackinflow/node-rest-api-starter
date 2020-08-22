@@ -68,21 +68,24 @@ module.exports.deleteUser = async (email) => {
 };
 
 function _updateUserModel(userData, updated) {
-  if (updated.firstName) userData.firstName = updated.firstName;
-
-  if (updated.lastName) userData.lastName = updated.lastName;
-
-  if (updated.website) userData.website = updated.website;
-
-  if (updated.profession) userData.profession = updated.profession;
-
-  if (updated.gender) userData.gender = updated.gender;
-
-  if (updated.location) userData.location = updated.location;
-
-  if (updated.knownLanguages) userData.knownLanguages = updated.knownLanguages;
-
-  if (updated.age) userData.age = updated.age;
+  for (const [key, value] of Object.entries(updated)) {
+    if (value && _isAllowed(key)) {
+      userData[key] = updated[key];
+    }
+  }
 
   return userData;
+}
+
+const _immutableFields = [
+  "email",
+  "userId",
+  "_id",
+  "__v",
+  "createdAt",
+  "updatedAt",
+];
+
+function _isAllowed(key) {
+  return !_immutableFields.includes(key);
 }
