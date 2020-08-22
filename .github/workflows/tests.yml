@@ -11,13 +11,13 @@ jobs:
     strategy:
       matrix:
         node-version: [12.x]
-        # mongodb-version: [4.2]
+        mongodb-version: [4.2]
 
     steps:
-      # - name: MongoDB in GitHub Actions
-      #   uses: supercharge/mongodb-github-action@1.3.0
-      #   with:
-      #     mongodb-version: ${{ matrix.mongodb-version }}
+      - name: MongoDB in GitHub Actions
+        uses: supercharge/mongodb-github-action@1.3.0
+        with:
+          mongodb-version: ${{ matrix.mongodb-version }}
 
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
@@ -46,7 +46,7 @@ jobs:
       - name: Get repo secrets into environment file
         run: |
           touch .env
-          echo "${{ SECRETS.ENV_VARS }}" >> .env
+          echo "${{ SECRETS.ENV_VARS_LOCALHOST }}" >> .env
 
       - run: npm ci
 
