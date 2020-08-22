@@ -1,6 +1,9 @@
 const checkIfEnvIsValid = require("./config").checkIfEnvIsValid;
 const mongoose = require("mongoose");
 
+const LOCALHOST = "localhost";
+const MONGODB = "mongodb";
+
 // this method will return mongodb connection uri (string)
 // based on the configuration
 function _getConnectionString(env) {
@@ -12,19 +15,19 @@ function _getConnectionString(env) {
   // for localhost: mongodb://<username>:<password>@host/db-name
   // only localhost will have a port
   // localhost dbs will not include srv
-  if (env.db.host.toString().includes("localhost")) {
+  if (env.db.host.toString().includes(LOCALHOST)) {
     if (env.db.username === "" || env.db.password === "") {
-      return `mongodb://${env.db.host}:${env.db.port}/${env.db.name}`;
+      return `${MONGODB}://${env.db.host}:${env.db.port}/${env.db.name}`;
     }
-    return `mongodb://${env.db.username}:${env.db.password}@${env.db.host}:${env.db.port}/${env.db.name}`;
+    return `${MONGODB}://${env.db.username}:${env.db.password}@${env.db.host}:${env.db.port}/${env.db.name}`;
   }
 
   // for remote host: mongodb+srv://<username>:<password>@host/db-name
   // atlas clusters will not provide a port or connect to default port 27017
   if (env.db.username === "" || env.db.password === "") {
-    return `mongodb+srv://${env.db.host}/${env.db.name}`;
+    return `${MONGODB}+srv://${env.db.host}/${env.db.name}`;
   }
-  return `mongodb+srv://${env.db.username}:${env.db.password}@${env.db.host}/${env.db.name}`;
+  return `${MONGODB}+srv://${env.db.username}:${env.db.password}@${env.db.host}/${env.db.name}`;
 }
 
 module.exports.connectToDB = (appConfig) => {

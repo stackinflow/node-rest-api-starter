@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { TOKEN_COLLECTION } = require("../utils/constants").collections;
 
 const tokenSchema = new mongoose.Schema({
   _userId: { type: mongoose.Schema.Types.ObjectId, required: true },
@@ -13,4 +14,4 @@ const tokenSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("token", tokenSchema);
+module.exports = mongoose.model(TOKEN_COLLECTION, tokenSchema);

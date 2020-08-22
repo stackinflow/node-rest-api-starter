@@ -35,9 +35,9 @@ class Email {
           console.log("Email sent");
         },
         (error) => {
-          console.error(error);
+          // console.error(error);
           if (error.response) {
-            console.error(error.response.body);
+            // console.error(error.response.body);
           }
         }
       );
