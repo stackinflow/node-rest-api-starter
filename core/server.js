@@ -12,6 +12,11 @@ const userRoute = require("../api/v1/routes/user");
 // importing admin routes
 const adminAuthRoute = require("../api/v1/routes/admin/auth");
 
+const {
+  MAX_REQ_BODY_SIZE,
+  PUBLIC_DIRECTORY,
+} = require("../core/config").EXPRESS_CONFIG;
+
 function _configureServer(app) {
   console.log("Configuring server...");
 
@@ -20,7 +25,7 @@ function _configureServer(app) {
   // app.use(express.static(__dirname + '/docs'));
 
   // allows rendering of static files in this directory
-  app.use(express.static(path.join(__dirname, "../public")));
+  app.use(express.static(path.join(__dirname, PUBLIC_DIRECTORY)));
 
   // adds helmet module to express server
   // Helmet helps you secure your Express apps by setting various HTTP headers.
@@ -28,7 +33,7 @@ function _configureServer(app) {
   app.use(helmet());
 
   // restricts the size of json body to 200kb
-  app.use(bodyParser.json({ limit: "200kb" }));
+  app.use(bodyParser.json({ limit: MAX_REQ_BODY_SIZE }));
   app.use(bodyParser.urlencoded({ extended: true }));
 
   // for websites, to allow cross origin api access

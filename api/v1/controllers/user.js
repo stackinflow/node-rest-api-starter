@@ -1,4 +1,15 @@
 const User = require("../models/user");
+const {
+  FAILED,
+  USER_NOT_EXISTS,
+  USER_DATA_UPDATE_FAILED,
+} = require("../utils/constants").errors;
+
+const {
+  SUCCESS,
+  FETCHED_USER_DATA,
+  UPDATED_USER_DATA,
+} = require("../utils/constants").successMessages;
 
 module.exports.createUser = async (userData) => {
   var user = new User({
@@ -19,13 +30,13 @@ module.exports.getUser = async (req, res) => {
     .then((document) => {
       if (!document) {
         return res.status(403).json({
-          status: "failed",
-          message: "User data doesn't exists",
+          status: FAILED,
+          message: USER_NOT_EXISTS,
         });
       }
       return res.status(200).json({
-        status: "success",
-        message: "Fetched user data",
+        status: SUCCESS,
+        message: FETCHED_USER_DATA,
         user: document,
       });
     })
@@ -41,15 +52,19 @@ module.exports.updateUser = async (req, res) => {
   await user.save((error, updated) => {
     if (error)
       return res.status(403).json({
-        status: "failed",
-        message: "Unable to update user data",
+        status: FAILED,
+        message: USER_DATA_UPDATE_FAILED,
       });
     return res.status(200).json({
-      status: "success",
-      message: "Updated user data",
+      status: SUCCESS,
+      message: UPDATED_USER_DATA,
       user: updated,
     });
   });
+};
+
+module.exports.deleteUser = async (email) => {
+  await User.deleteOne({ email: email });
 };
 
 function _updateUserModel(userData, updated) {

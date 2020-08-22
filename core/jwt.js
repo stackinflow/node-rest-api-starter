@@ -9,6 +9,10 @@ const _publicKeyPath = "../keys/public.pem";
 const _privateRefreshKeyPath = "../keys/privater.pem";
 const _publicRefreshKeyPath = "../keys/publicr.pem";
 
+const SIGN_ALGORITHM = "RS256";
+const TOKEN_EXPIRED = "Token Expired";
+const FILE_ENCODING_UTF8 = "utf8";
+
 class JWTHandler {
   constructor() {
     this._fetchKeys();
@@ -25,21 +29,37 @@ class JWTHandler {
 
       3. We parse the data stored in files in utf-8 encoding
     */
+    this._fetchPrivateKeyA();
+    this._fetchPrivateKeyR();
+    this._fetchPublicKeyA();
+    this._fetchPublicKeyR();
+  }
+
+  _fetchPrivateKeyA() {
     this._privateKey = fs.readFileSync(
       path.join(__dirname, _privateKeyPath),
-      "utf8"
+      FILE_ENCODING_UTF8
     );
+  }
+
+  _fetchPublicKeyA() {
     this._publicKey = fs.readFileSync(
       path.join(__dirname, _publicKeyPath),
-      "utf8"
+      FILE_ENCODING_UTF8
     );
+  }
+
+  _fetchPrivateKeyR() {
     this._RprivateKey = fs.readFileSync(
       path.join(__dirname, _privateRefreshKeyPath),
-      "utf8"
+      FILE_ENCODING_UTF8
     );
+  }
+
+  _fetchPublicKeyR() {
     this._RpublicKey = fs.readFileSync(
       path.join(__dirname, _publicRefreshKeyPath),
-      "utf8"
+      FILE_ENCODING_UTF8
     );
   }
 
@@ -50,18 +70,8 @@ class JWTHandler {
     // if not loaded, then this will reload the cert
     if (!this._privateKey) {
       // console.log("re fetching key");
-      this._privateKey = fs.readFileSync(
-        path.join(__dirname, _privateKeyPath),
-        "utf8"
-      );
+      this._fetchPrivateKeyA();
     }
-
-    // expires after 1 day
-    // return this._genJWT(
-    //   this._payloadAccessToken(email),
-    //   this._privateKey,
-    //   "1d"
-    // );
 
     // fetch expiry time from .env
     return this._genJWT(
@@ -75,18 +85,9 @@ class JWTHandler {
   // it uses the specified cert for creating jwt
   async genRefreshToken(user_id) {
     if (!this._RprivateKey) {
-      console.log("re fetching key");
-      this._RprivateKey = fs.readFileSync(
-        path.join(__dirname, _privateRefreshKeyPath),
-        "utf8"
-      );
+      // console.log("re fetching refresh key");
+      this._fetchPrivateKeyR();
     }
-    // expires after 30 days
-    // return this._genJWT(
-    //   this._payloadRefreshToken(user_id),
-    //   this._RprivateKey,
-    //   "30d"
-    // );
 
     // fetch expiry time from .env
     return this._genJWT(
@@ -112,7 +113,7 @@ class JWTHandler {
       return { valid: true, data: jwt.verify(token, cert) };
     } catch (err) {
       if (err.name.includes("TokenExpiredError")) {
-        return { valid: false, error: "Token Expired" };
+        return { valid: false, error: TOKEN_EXPIRED };
       }
       return { valid: false, error: err };
     }
@@ -122,7 +123,7 @@ class JWTHandler {
   _genJWT(payload, cert, expiresIn) {
     return jwt.sign(payload, cert, {
       expiresIn: expiresIn,
-      algorithm: "RS256",
+      algorithm: SIGN_ALGORITHM,
     });
   }
 

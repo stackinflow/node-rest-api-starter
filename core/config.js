@@ -1,12 +1,21 @@
 require("dotenv").config();
 
+const PROD_KEY = "prod";
+const DEV_KEY = "dev";
+const TEST_KEY = "test";
+
+const EXPRESS_CONFIG = Object.freeze({
+  MAX_REQ_BODY_SIZE: "200kb",
+  PUBLIC_DIRECTORY: "../public",
+});
+
 const dev = {
-  name: "dev",
+  name: DEV_KEY,
   app: {
     port: process.env.PORT || 9000,
   },
   db: {
-    name: `${process.env.DB_NAME}-dev`,
+    name: `${process.env.DB_NAME}-${DEV_KEY}`,
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     username: process.env.DB_USERNAME,
@@ -15,12 +24,12 @@ const dev = {
 };
 
 const test = {
-  name: "test",
+  name: TEST_KEY,
   app: {
     port: process.env.PORT || 9000,
   },
   db: {
-    name: `${process.env.DB_NAME}-test`,
+    name: `${process.env.DB_NAME}-${TEST_KEY}`,
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     username: process.env.DB_USERNAME,
@@ -29,7 +38,7 @@ const test = {
 };
 
 const prod = {
-  name: "prod",
+  name: PROD_KEY,
   app: {
     port: process.env.PORT || 9000,
   },
@@ -55,11 +64,11 @@ const env = _getEnvironment();
 // if no valid env string is placed in .env then dev environment will be choosen as default
 function _getEnvironment() {
   const tEnv = process.env.NODE_ENV;
-  if (tEnv == "prod" || tEnv == "dev" || tEnv == "test") return tEnv;
+  if (tEnv == PROD_KEY || tEnv == DEV_KEY || tEnv == TEST_KEY) return tEnv;
   console.log(
     "[Warning]: Invalid environment config in .env for key NODE_ENV\nPicking dev environment for running server"
   );
-  return "dev";
+  return DEV_KEY;
 }
 
 // this method performs basic checks to check if environment config is valid
@@ -70,5 +79,6 @@ function checkIfEnvIsValid(env) {
   return true;
 }
 
-module.exports = config[env] || config["dev"];
+module.exports = config[env] || config[DEV_KEY];
 module.exports.checkIfEnvIsValid = checkIfEnvIsValid;
+module.exports.EXPRESS_CONFIG = EXPRESS_CONFIG;

@@ -1,12 +1,13 @@
 const Auth = require("../../api/v1/models/auth");
 const Token = require("../../api/v1/models/token");
+const User = require("../../api/v1/models/user");
 const {
   ACCESS_TOKEN,
   REFRESH_TOKEN,
   AUTHORIZATION_HEADER,
   BEARER,
   BASIC,
-} = require("../../api/v1/utils/constants");
+} = require("../../api/v1/utils/constants").headers;
 
 var data = {
   email: "fayaz5@test.com",
@@ -28,7 +29,9 @@ module.exports = (chai, server) => {
     return new Promise((resolve, reject) => {
       Auth.deleteMany().then((data) => {
         Token.deleteMany().then((data) => {
-          return resolve();
+          User.deleteMany().then((data) => {
+            return resolve();
+          });
         });
       });
     });
@@ -59,6 +62,14 @@ module.exports = (chai, server) => {
           response.should.have.status(201);
           done();
         });
+    });
+
+    it("should create a document in User collection", (done) => {
+      User.find().then((array) => {
+        array.length.should.equal(1);
+        array[0].email.should.equal(data.email);
+        done();
+      });
     });
 
     it("should not register duplicate users", (done) => {
@@ -297,7 +308,7 @@ module.exports = (chai, server) => {
       });
     });
 
-    it("should login with new password after resetting and tokens should be different from earlier ones", (done) => {
+    it("should login with new password after resetting and should have tokens", (done) => {
       chai
         .request(server)
         .post(baseUrl + "/login")
@@ -308,12 +319,6 @@ module.exports = (chai, server) => {
           response.should.have.status(200);
           response.should.have.header(ACCESS_TOKEN);
           response.should.have.header(REFRESH_TOKEN);
-
-          var tAccessToken = response.header[ACCESS_TOKEN];
-          tAccessToken.should.not.equal(accessToken);
-
-          // var tRefreshToken = response.header[REFRESH_TOKEN];
-          // tRefreshToken.should.not.equal(refreshToken);
 
           accessToken = response.header[ACCESS_TOKEN];
           refreshToken = response.header[REFRESH_TOKEN];
@@ -363,8 +368,15 @@ module.exports = (chai, server) => {
         });
     });
 
-    it("no users should exist in db after deleting", (done) => {
+    it("no users should exist in auth collection after deleting", (done) => {
       Auth.find().then((users) => {
+        users.should.have.length(0);
+        done();
+      });
+    });
+
+    it("no users should exist in user collection after deleting", (done) => {
+      User.find().then((users) => {
         users.should.have.length(0);
         done();
       });
