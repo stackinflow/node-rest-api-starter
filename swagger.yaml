@@ -13,6 +13,8 @@ tags:
     description: Authentication and authorization operations
   - name: Admin Auth
     description: Authentication for Admin 
+  - name: User
+    description: Routes related to End User
 paths:
   /auth/register:
     post:
@@ -43,6 +45,8 @@ paths:
           description: User Created successfully.
         '400':
           description: Unable to create user.
+        '500':
+          description: Internal Server Error
   /auth/login:
     post:
       tags:
@@ -72,6 +76,8 @@ paths:
           description: Logged In Successfully.
         '400':
           description: Unable to Login.
+        '500':
+          description: Internal Server Error
   /auth/token/verify:
     get:
       tags:
@@ -93,6 +99,8 @@ paths:
           description: Token Verified successfully.
         '400':
           description: Failed to verify the token.
+        '500':
+          description: Internal Server Error
   /auth/token/resend:
     post:
       tags:
@@ -123,7 +131,9 @@ paths:
         '400':
           description: Unable to Resend token.
         '401':
-          description: Incorrect Password
+          description: Incorrect Password.
+        '500':
+          description: Internal Server Error
   /auth/password:
     patch:
       tags:
@@ -155,6 +165,8 @@ paths:
           description: Bad Request.
         '403':
           description: Password Change Failed Try Again later
+        '500':
+          description: Internal Server Error
       security:
         - bearerAuth: []
   /auth/password/reset/code/resend:
@@ -183,6 +195,8 @@ paths:
           description: OTP Sent successfully to your email.
         '400':
           description: Failed, User doesn't exist.
+        '500':
+          description: Internal Server Error
   /auth/password/reset/code:
     post:
       tags:
@@ -209,6 +223,8 @@ paths:
           description: OTP Sent successfully to your email.
         '400':
           description: Failed, User doesn't exist.
+        '500':
+          description: Internal Server Error
   /auth/password/reset:
     post:
       tags:
@@ -242,6 +258,8 @@ paths:
           description: Password Reset successfully.
         '400':
           description: Failed, Check the error message for details.
+        '500':
+          description: Internal Server Error
   /auth:
     delete:
       tags:
@@ -259,14 +277,16 @@ paths:
           description: Bad Request.
         '403':
           description: Failed to delete user
+        '500':
+          description: Internal Server Error
       security:
         - bearerAuth: []
   /admin/auth/register:
     post:
       tags:
         - Admin Auth
-      summary: Creates a new User
-      description: Creates a new user
+      summary: Creates a new Admin account
+      description: Creates a new Admin account
       consumes:
         - application/json
       produces:
@@ -287,15 +307,17 @@ paths:
                   example: Password@123
       responses:
         '201':
-          description: User Created successfully.
+          description: Admin user Created successfully.
         '400':
-          description: Unable to create user.
+          description: Unable to create Admin user.
+        '500':
+          description: Internal Server Error
   /admin/auth/login:
     post:
       tags:
         - Admin Auth
-      summary: Login a user
-      description: Login a user using email and password.
+      summary: Login as an Admin
+      description: Login as an admin using email and password.
       consumes:
         - application/json
       produces:
@@ -319,12 +341,14 @@ paths:
           description: Logged In Successfully.
         '400':
           description: Unable to Login.
+        '500':
+          description: Internal Server Error
   /admin/auth/users:
     get:
       tags:
         - Admin Auth
-      summary: Login a user
-      description: Login a user using email and password.
+      summary: Get a list of all the users
+      description: Get a list of all the users registered in this app.
       consumes:
         - application/json
       produces:
@@ -334,23 +358,123 @@ paths:
           description: Users Fetched successfully.
         '403':
           description: Failed, Forbidden to fetch user
+        '500':
+          description: Internal Server Error
       security:
         - bearerAuth: []
   /admin/auth/admins:
-    get:
+    patch:
       tags:
         - Admin Auth
-      summary: Login a user
-      description: Login a user using email and password.
+      summary: Get a list of all the admins.
+      description: Get a list of all the admins registered in the app.
       consumes:
         - application/json
       produces:
         - application/json
       responses:
         '200':
-          description: Users Fetched successfully.
+          description: Admins Fetched successfully.
         '403':
-          description: Failed, Forbidden to fetch user
+          description: Failed, Forbidden to fetch admins.
+        '500':
+          description: Internal Server Error
+      security:
+        - bearerAuth: []
+  /admin/auth/user/enable:
+    get:
+      tags:
+        - Admin Auth
+      summary: Enable an admin account.
+      description: Enable an admin account using access token.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Account enabled successfully.
+        '403':
+          description: Failed, Forbidden to enable user account.
+        '500':
+          description: Internal Server Error
+      security:
+        - bearerAuth: []
+  /admin/auth/user/disable:
+    get:
+      tags:
+        - Admin Auth
+      summary: Disable an admin account.
+      description: Disable an admin account using access token.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Account disabled successfully.
+        '403':
+          description: Failed, Forbidden to disable user account.
+        '500':
+          description: Internal Server Error
+      security:
+        - bearerAuth: []
+
+  /user:
+    get:
+      tags:
+        - User
+      summary: Get all the details of a user
+      description: Get a list of all the details of a user by providing access token.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: User Data Fetched successfully.
+        '403':
+          description: Failed, Forbidden to fetch user data.
+        '500':
+          description: Internal Server Error
+      security:
+        - bearerAuth: []
+    patch:
+      tags:
+        - User
+      summary: Edit User Details
+      description: Edit data related to the user.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  required: true
+                  example: Shubham
+                lastName:
+                  type: string
+                  example: Raj
+                gender:
+                  type: string
+                  example: Male
+                age:
+                  type: integer
+                  example: 20
+      responses:
+        '200':
+          description: User Data Fetched successfully.
+        '403':
+          description: Failed, Forbidden to fetch user data.
+        '500':
+          description: Internal Server Error
       security:
         - bearerAuth: []
 components:
@@ -359,3 +483,71 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        userId:
+          type: string
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName: 
+          type: string
+        gender: 
+          type: string
+        age: 
+          type: integer
+        knownLanguages:
+          type: string
+        profession: 
+          type: string
+        location: 
+          type: string
+        latitude: 
+          type: integer
+        longitude: 
+          type: integer
+        photoUrl: 
+          type: string
+        symptoms:
+          type: string
+      required:
+      - userId
+      - email
+    Auth:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        admin: 
+          type: boolean
+        adminVerified: 
+          type: boolean
+        disabled: 
+          type: boolean
+        emailVerified:
+          type: boolean
+        provider: 
+          type: boolean
+        oauthToken: 
+          type: string
+      required:
+      - email
+    Token:
+      type: object
+      properties:
+        _userId:
+          type: string
+        token:
+          type: string
+        createdAt: 
+          type: string
+          format: date-time
+      required:
+      - _userId
+      - token
+      - createdAt
