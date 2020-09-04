@@ -9,15 +9,15 @@ servers:
   - url: http://localhost:3000/api/v1
     description: Development server
 tags:
-  - name: auth
+  - name: Auth
     description: Authentication and authorization operations
-  - name: user
-    description: Operations about user
+  - name: Admin Auth
+    description: Authentication for Admin 
 paths:
   /auth/register:
     post:
       tags:
-        - auth
+        - Auth
       summary: Creates a new User
       description: Creates a new user
       consumes:
@@ -46,7 +46,7 @@ paths:
   /auth/login:
     post:
       tags:
-        - auth
+        - Auth
       summary: Login a user
       description: Login a user using email and password.
       consumes:
@@ -75,7 +75,7 @@ paths:
   /auth/token/verify:
     get:
       tags:
-        - auth
+        - Auth
       summary: Verifies a given token for a new user
       description: Verifies a token for a new user
       consumes:
@@ -96,7 +96,7 @@ paths:
   /auth/token/resend:
     post:
       tags:
-        - auth
+        - Auth
       summary: Resend Token
       description: Resend Token for a new user
       consumes:
@@ -127,7 +127,7 @@ paths:
   /auth/password:
     patch:
       tags:
-        - auth
+        - Auth
       summary: Change Password
       description: Change password using old password
       consumes:
@@ -160,7 +160,7 @@ paths:
   /auth/password/reset/code/resend:
     post:
       tags:
-        - auth
+        - Auth
       summary: Regenerate code to reset password
       description: Regenerate OTP to reset password
       consumes:
@@ -186,7 +186,7 @@ paths:
   /auth/password/reset/code:
     post:
       tags:
-        - auth
+        - Auth
       summary: Generate code to reset password
       description: Generate OTP to reset password
       consumes:
@@ -212,7 +212,7 @@ paths:
   /auth/password/reset:
     post:
       tags:
-        - auth
+        - Auth
       summary: Reset password using OTP
       description: Reset password of a user using OTP.
       consumes:
@@ -245,7 +245,7 @@ paths:
   /auth:
     delete:
       tags:
-        - auth
+        - Auth
       summary: Delete a user permanently
       description: Deletes a user permanently.
       consumes:
@@ -261,9 +261,101 @@ paths:
           description: Failed to delete user
       security:
         - bearerAuth: []
+  /admin/auth/register:
+    post:
+      tags:
+        - Admin Auth
+      summary: Creates a new User
+      description: Creates a new user
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  required: true
+                  example: user@email.com
+                password:
+                  type: string
+                  example: Password@123
+      responses:
+        '201':
+          description: User Created successfully.
+        '400':
+          description: Unable to create user.
+  /admin/auth/login:
+    post:
+      tags:
+        - Admin Auth
+      summary: Login a user
+      description: Login a user using email and password.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  required: true
+                  example: user@email.com
+                password:
+                  type: string
+                  example: Password@123
+      responses:
+        '200':
+          description: Logged In Successfully.
+        '400':
+          description: Unable to Login.
+  /admin/auth/users:
+    get:
+      tags:
+        - Admin Auth
+      summary: Login a user
+      description: Login a user using email and password.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Users Fetched successfully.
+        '403':
+          description: Failed, Forbidden to fetch user
+      security:
+        - bearerAuth: []
+  /admin/auth/admins:
+    get:
+      tags:
+        - Admin Auth
+      summary: Login a user
+      description: Login a user using email and password.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Users Fetched successfully.
+        '403':
+          description: Failed, Forbidden to fetch user
+      security:
+        - bearerAuth: []
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT 
+      bearerFormat: JWT
