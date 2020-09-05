@@ -4,8 +4,25 @@
 
 [![stackinflow](https://img.shields.io/badge/stackinflow-opensource-brightgreen)](https://stackinflow.github.io/) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/215290ffb548419bbff773ca8abcdb3d)](https://app.codacy.com/gh/stackinflow/node-rest-api-starter?utm_source=github.com&utm_medium=referral&utm_content=stackinflow/node-rest-api-starter&utm_campaign=Badge_Grade_Dashboard) [![Build Status](https://github.com/stackinflow/node-rest-api-starter/workflows/Mocha-Tests/badge.svg)](https://github.com/stackinflow/node-rest-api-starter/actions)
 
+<a href="https://www.buymeacoffee.com/fayaz" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-violet.png" alt="Buy Me A Coffee" height="45px" width="180px" ></a>
+
 This repository is a template to avoid rewriting all the basic authentication code for REST API's built with Express.js, MongoDB.
 
+## Table of contents
+
+1. [Why this template](#why-this-template)
+2. [Project architecture & Directories Structure](#project-architecture-structrue)
+3. [Tech stack](#tech-stack)
+4. [Install and configure Node.js](#installation-of-nodejs)
+5. [Mongodb Installation and Configuration](#mongodb-installation-configuration)
+6. [Setup and Run the Project](#setup-and-run-the-project)
+7. [Setup GitHub actions](#setup-gh-actions)
+8. [Authors](#authors)
+9. [Contributing](#contributing)
+
+<!--
+(#why-this-template)
+-->
 ## Why this template
 
 - This repository includes setup of all basic things required to start a MEAN/MERN stack backend
@@ -20,6 +37,9 @@ This repository is a template to avoid rewriting all the basic authentication co
 - Token based email verification and OTP based password reset
 - Body field validators
 
+<!--
+(#project-architecture-structrue)
+-->
 ## Project architecture & Directories Structure
 
 ```
@@ -75,6 +95,9 @@ This repository is a template to avoid rewriting all the basic authentication co
         └── test.js
 ```
 
+<!--
+(#tech-stack)
+-->
 ## Tech stack
 
 Node.js, MongoDB
@@ -123,11 +146,8 @@ Tests are written using Mocha and Chai
 
 Not implemented yet
 
-## Project setup
 
-1. [Install and configure Node.js](#installation-of-nodejs)
-2. [Mongodb Installation and Configuration](#mongodb-installation-configuration)
-3. [Setup and Run the Project](#setup-and-run-the-project)
+## Project setup
 
 <!--
 (#installation-of-nodejs)
@@ -206,34 +226,8 @@ sudo apt-get update
 
 d. Install the MongoDB packages
 
-````bash
+```bash
 sudo apt-get install -y mongod
-## Mongodb installation and configuration
-
-In case you face any issues, refer official [docs](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/)
-
-#### Installing mongodb v4.2
-a. Import the public key used by the package management system.
-```bash
-wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
-````
-
-b. Create a list file for MongoDB
-
-```bash
-echo  "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
-```
-
-c. Reload local package database.
-
-```bash
-sudo apt-get update
-```
-
-d. Install the MongoDB packages
-
-```bash
-sudo apt-get install -y mongodb-org
 ```
 
 e. Optional. Although you can specify any available version of MongoDB
@@ -409,13 +403,61 @@ npm start
 ```bash
 npm test
 ```
+<!--
+(#setup-gh-actions)
+-->
+## Setup GitHub actions
 
+Mock environment values
+
+```bash
+# allowed-values: prod, dev, test
+NODE_ENV=dev
+PORT=5000
+
+# mongodb
+# Ex: remote mongodb host: my-app.xxxxx.mongodb.net
+DB_NAME=node_template
+DB_HOST=localhost
+DB_PORT=27017
+DB_USERNAME=
+DB_PASSWORD=
+
+# tokens
+TOKEN_ISSUER=Node.js
+TOKEN_AUDIENCE=API_USERS
+TOKEN_SUBJECT=API_ACCESS
+# Ex: For 1 day- 1d, for 1 second - 1s
+REFRESH_TOKEN_EXPIRES=
+ACCESS_TOKEN_EXPIRES=
+
+# host
+# for remote host=https://myapp.com
+host=localhost:5000
+
+# SENDGRID_API_KEY go here
+SENDGRID_API_KEY=<API-KEY>
+SENDGRID_EMAIL=john@doe.com
+SENDGRID_USERNAME=John
+
+# facebook client details
+client_id=
+client_secret=
+```
+Create such config locally in a text file or just copy the config from `.env` of your db, then head over to `Secrets` section of your repo, an ideal link would be like this https://github.com/username/node-rest-api-starter/settings/secrets when you replace `username` with your own github username, then create a new Secret there with key as `ENV_VARS_LOCALHOST` and the value as whole of your file which you have just created in the above step. When you make a pull request to the master branch this will get executed.
+
+<!--
+(#authors)
+-->
 ## Authors
 
 | ![image](https://avatars3.githubusercontent.com/u/35001172?s=128&v=4)                                                                                                                                                                                                                                                                                                                                                                         | ![image](https://avatars1.githubusercontent.com/u/20471162?s=128&v=4)                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [![LinkedIn](http://icons.iconarchive.com/icons/martz90/circle/32/linkedin-icon.png)](https://linkedin.com/in/fayaz07/) [![GitHub](https://icons.iconarchive.com/icons/artcore-illustrations/artcore-4/32/github-icon.png)](https://github.com/fayaz07/) [![Twitter](http://icons.iconarchive.com/icons/ampeross/smooth/32/Twitter-icon.png)](https://twitter.com/fayaz7_) [![Medium](public/images/medium.png)](https://medium.com/@fayaz07) | [![LinkedIn](http://icons.iconarchive.com/icons/martz90/circle/32/linkedin-icon.png)](https://linkedin.com/in/prudhvir3ddy/) [![GitHub](https://icons.iconarchive.com/icons/artcore-illustrations/artcore-4/32/github-icon.png)](https://github.com/prudhvir3ddy/) [![Twitter](http://icons.iconarchive.com/icons/ampeross/smooth/32/Twitter-icon.png)](https://twitter.com/https://twitter.com/prudhvir3ddy) [![Medium](public/images/medium.png)](https://medium.com/@prudhvir3ddy) |
 
+<!--
+(#contributing)
+-->
 ## Contributing
 
 Check [Contributing](CONTRIBUTING.md) file
