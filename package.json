@@ -49,6 +49,8 @@
     "nodemailer": "^6.4.11",
     "otp-generator": "^1.1.0",
     "pug": "^3.0.0",
-    "socket.io": "^2.3.0"
+    "socket.io": "^2.3.0",
+    "swagger-ui-express": "^4.1.4",
+    "yamljs": "^0.3.0"
   }
 }
