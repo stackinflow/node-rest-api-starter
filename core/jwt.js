@@ -128,22 +128,24 @@ class JWTHandler {
   }
 
   // returns accessToken's payload
-  _payloadAccessToken(email) {
+  // uses authId, which is the mongodb id for the `auth` collection
+  _payloadAccessToken(authId) {
     return {
       aud: process.env.TOKEN_AUDIENCE,
       sub: process.env.TOKEN_SUBJECT + "_AccessToken",
       iss: process.env.TOKEN_ISSUER,
-      email: email,
+      authId: authId,
     };
   }
 
   // returns refreshToken's payload
-  _payloadRefreshToken(user_id) {
+  // uses userId, which is the mongodb id for the `user` collection
+  _payloadRefreshToken(userId) {
     return {
       aud: process.env.TOKEN_AUDIENCE,
       sub: process.env.TOKEN_SUBJECT + "_RefreshToken",
       iss: process.env.TOKEN_ISSUER,
-      user_id: user_id,
+      userId: userId,
     };
   }
 }

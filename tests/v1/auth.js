@@ -49,7 +49,6 @@ module.exports = (chai, server) => {
         .set("Content-Type", "application/json")
         .send(data)
         .end((err, response) => {
-          console.log(response.body);
           response.should.not.have.status(200);
           response.should.not.have.header(ACCESS_TOKEN);
           response.should.not.have.header(REFRESH_TOKEN);
@@ -67,7 +66,6 @@ module.exports = (chai, server) => {
           password: data.password,
         })
         .end((err, response) => {
-          console.log(response.body);
           response.should.have.status(201);
           done();
         });
@@ -113,7 +111,6 @@ module.exports = (chai, server) => {
         .post(baseUrl + "/token/resend")
         .send(data)
         .end((err, response) => {
-          console.log(response.body);
           response.should.have.status(200);
           done();
         });

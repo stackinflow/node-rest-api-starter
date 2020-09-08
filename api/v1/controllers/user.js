@@ -27,10 +27,12 @@ module.exports.createUser = async (userData) => {
 };
 
 module.exports.getUser = async (req, res) => {
-  await User.findOne(
-    { email: req.tokenData.email },
-    { _id: 0, createdAt: 0, updatedAt: 0, __v: 0 }
-  )
+  await User.findById(req.tokenData.authId, {
+    _id: 0,
+    createdAt: 0,
+    updatedAt: 0,
+    __v: 0,
+  })
     .then((document) => {
       if (!document) {
         return res.status(403).json({
@@ -48,10 +50,11 @@ module.exports.getUser = async (req, res) => {
 };
 
 module.exports.updateUser = async (req, res) => {
-  var user = await User.findOne(
-    { email: req.tokenData.email },
-    { createdAt: 0, updatedAt: 0, __v: 0 }
-  );
+  var user = await User.findById(req.tokenData.authId, {
+    createdAt: 0,
+    updatedAt: 0,
+    __v: 0,
+  });
   user = _updateUserModel(user, req.body);
   await user.save((error, updated) => {
     if (error)
@@ -67,8 +70,8 @@ module.exports.updateUser = async (req, res) => {
   });
 };
 
-module.exports.deleteUser = async (email) => {
-  await User.deleteOne({ email: email });
+module.exports.deleteUser = async (authId) => {
+  await User.deleteOne({ userId: authId });
 };
 
 function _updateUserModel(userData, updated) {

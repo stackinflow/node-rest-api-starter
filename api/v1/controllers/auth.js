@@ -96,7 +96,7 @@ const { joinWithCommaSpace, joinWithSpace } = require("../../../core/helpers");
 module.exports.registerWithEmail = async (req, res, registerAsAdmin) => {
   if (registerAsAdmin === null) registerAsAdmin = false;
   // check if user exists
-  var authUser = await getAuthUser(req.body.email);
+  var authUser = await getAuthUserByEmail(req.body.email);
 
   if (authUser)
     return res.status(409).json({ status: FAILED, message: EMAIL_IN_USE });
@@ -146,7 +146,7 @@ module.exports.loginWithEmail = async (req, res, loginAsAdmin) => {
   if (loginAsAdmin === null) loginAsAdmin = false;
 
   // check if user exists
-  var authUser = await getAuthUser(req.body.email);
+  var authUser = await getAuthUserByEmail(req.body.email);
 
   if (!authUser)
     return res
@@ -216,7 +216,7 @@ module.exports.verifyAccByToken = async (req, res) => {
     - send new token for verification
 */
 module.exports.resendAccVerificatinToken = async (req, res) => {
-  const authUser = await getAuthUser(req.body.email);
+  const authUser = await getAuthUserByEmail(req.body.email);
 
   if (!authUser)
     return res.status(400).send({ status: FAILED, message: USER_NOT_EXISTS });
@@ -258,7 +258,7 @@ module.exports.resendAccVerificatinToken = async (req, res) => {
     - update password
 */
 module.exports.updatePassword = async (req, res) => {
-  var authUser = await getAuthUser(req.tokenData.email);
+  var authUser = await getAuthUser(req.tokenData.authId);
 
   if (!authUser)
     return res.status(400).json({ status: FAILED, message: USER_NOT_EXISTS });
@@ -310,7 +310,7 @@ module.exports.updatePassword = async (req, res) => {
     - send new password reset otp to email
 */
 module.exports.sendPasswordResetCode = async (req, res) => {
-  const authUser = await getAuthUser(req.body.email);
+  const authUser = await getAuthUserByEmail(req.body.email);
 
   if (!authUser)
     return res.status(400).json({ status: FAILED, message: USER_NOT_EXISTS });
@@ -329,7 +329,7 @@ module.exports.sendPasswordResetCode = async (req, res) => {
     - send new password reset otp to email
 */
 module.exports.resendPasswordResetCode = async (req, res) => {
-  const authUser = await getAuthUser(req.body.email);
+  const authUser = await getAuthUserByEmail(req.body.email);
 
   if (!authUser)
     return res.status(400).json({ status: FAILED, message: USER_NOT_EXISTS });
@@ -407,7 +407,7 @@ module.exports.resetPassword = async (req, res) => {
 */
 module.exports.refreshTokens = async (req, res) => {
   var authUser = await Auth.findOne({
-    _id: req.tokenData.user_id,
+    _id: req.tokenData.userId,
   });
 
   if (!authUser)
@@ -455,14 +455,19 @@ function verifyRefreshToken(refreshToken) {
     - delete account
 */
 module.exports.deleteAccount = async (req, res) => {
-  const authUser = await getAuthUser(req.tokenData.email);
+  const authUser = await getAuthUser(req.tokenData.authId);
+  if (!authUser)
+    return res.status(403).json({
+      status: FAILED,
+      message: joinWithCommaSpace(ACC_DELETE_FAILED, TRY_LATER),
+    });
   await Auth.deleteOne({ email: authUser.email }, async (error) => {
     if (error)
       return res.status(403).json({
         status: FAILED,
         message: joinWithCommaSpace(ACC_DELETE_FAILED, TRY_LATER),
       });
-    await deleteUser(req.tokenData.email);
+    await deleteUser(req.tokenData.authId);
     return res.status(200).json({
       status: SUCCESS,
       message: ACC_DELETED,
@@ -640,20 +645,34 @@ async function getAuthUserById(userId) {
 /* 
   Fetches authUser instance from db by email only specified fields
 */
-async function getAuthUserWithProjection(email, project) {
-  const emailExist = await Auth.findOne({ email: email }, project);
+async function getAuthUserWithProjection(authId, project) {
+  const emailExist = await Auth.findById(authId, project);
   return emailExist;
+}
+
+/* 
+  Fetches authUser instance from db by authId
+*/
+async function getAuthUser(authId) {
+  const authUser = await getAuthUserWithProjection(authId, {
+    createdAt: 0,
+    updatedAt: 0,
+  });
+  return authUser;
 }
 
 /* 
   Fetches authUser instance from db by email
 */
-async function getAuthUser(email) {
-  const emailExist = await Auth.findOne(
+async function getAuthUserByEmail(email) {
+  const authUser = await Auth.findOne(
     { email: email },
-    { createdAt: 0, updatedAt: 0 }
+    {
+      createdAt: 0,
+      updatedAt: 0,
+    }
   );
-  return emailExist;
+  return authUser;
 }
 
 /* 
@@ -796,7 +815,7 @@ async function loginUser(authUser, loginAsAdmin, provider, res, isSignup) {
 
   authUser = await _createNewRefreshTokenIfAboutToExpire(authUser);
 
-  const accessToken = await JWTHandler.genAccessToken(authUser.email);
+  const accessToken = await JWTHandler.genAccessToken(authUser._id);
 
   // saving refresh-token in database
   await authUser.save(async (error, savedUser) => {
@@ -839,7 +858,7 @@ async function _getNewFbAccessToken(oldAccessToken) {
   Creates new access and refresh tokens and send back to client
 */
 async function _generateNewTokensAndSendBackToClient(authUser, res) {
-  const newAccessToken = await JWTHandler.genAccessToken(authUser.email);
+  const newAccessToken = await JWTHandler.genAccessToken(authUser._id);
 
   authUser = await _createNewRefreshTokenIfAboutToExpire(authUser);
 
