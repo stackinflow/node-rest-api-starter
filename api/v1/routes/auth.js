@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const {
   validateRegisterFields,
+  validateLoginFields,
   validPassword,
   validPasswords,
   validEmail,
@@ -50,18 +51,13 @@ router.post(
     - validate body
     - validate password
 */
-router.post(
-  "/login",
-  validateRegisterFields,
-  validPassword,
-  async (req, res) => {
-    try {
-      await loginWithEmail(req, res, false);
-    } catch (error) {
-      internalServerError(res, error);
-    }
+router.post("/login", validateLoginFields, validPassword, async (req, res) => {
+  try {
+    await loginWithEmail(req, res, false);
+  } catch (error) {
+    internalServerError(res, error);
   }
-);
+});
 
 /* 
   user account verification
@@ -80,7 +76,7 @@ router.get("/token/verify", async (req, res) => {
 */
 router.post(
   "/token/resend",
-  validateRegisterFields,
+  validateLoginFields,
   validPassword,
   async (req, res) => {
     try {

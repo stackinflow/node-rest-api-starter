@@ -43,7 +43,7 @@ class Email {
       );
   }
 
-  accVerification(token, email) {
+  accVerification(token, email, name) {
     console.log("sending mail");
     try {
       // this host will be used for sending the account verification link to the user
@@ -54,6 +54,7 @@ class Email {
       const render = pug.renderFile(__dirname + "/templates/verify_email.pug", {
         link: `${localHost}/api/v1/auth/token/verify?t=${token}`,
         host: localHost,
+        name: name.replace("undefined", ""),
       });
 
       var mailOptions = {

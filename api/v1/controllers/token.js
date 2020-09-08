@@ -45,7 +45,7 @@ module.exports.resendOTPForPasswordReset = async (userId, email) => {
     - send the email with new token as a link
     - return true
 */
-module.exports.sendVerificationMail = async (userId, email) => {
+module.exports.sendVerificationMail = async (userId, email, name) => {
   const oldToken = await _getToken(userId);
   if (oldToken) {
     return false;
@@ -57,16 +57,16 @@ module.exports.sendVerificationMail = async (userId, email) => {
   });
 
   await token.save();
-  mailer.accVerification(token.token, email);
+  mailer.accVerification(token.token, email, name);
   return true;
 };
 
 /* Send new verification email 
     - delete old token
 */
-module.exports.sendNewVerificationMail = async (userId, email) => {
+module.exports.sendNewVerificationMail = async (userId, email, name) => {
   await _deleteOldToken(userId);
-  await this.sendVerificationMail(userId, email);
+  await this.sendVerificationMail(userId, email, name);
 };
 
 /* 

@@ -1,5 +1,6 @@
 const {
   registerValidation,
+  loginValidation,
   emailValidation,
   resetPasswordValidation,
 } = require("../utils/validators");
@@ -37,6 +38,23 @@ const {
 */
 module.exports.validateRegisterFields = (req, res, next) => {
   const { error } = registerValidation(req.body);
+  if (error)
+    return res.status(400).json({
+      status: FAILED,
+      message: error.details[0].message,
+      error: error,
+    });
+
+  next();
+};
+
+/* login fields validation middleware
+    (using register fields validation to login and
+    resending the verification token also
+    as the body is same for all)
+*/
+module.exports.validateLoginFields = (req, res, next) => {
+  const { error } = loginValidation(req.body);
   if (error)
     return res.status(400).json({
       status: FAILED,
