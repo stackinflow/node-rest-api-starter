@@ -243,7 +243,7 @@ module.exports.validateAccessToken = (req, res, next) => {
   Check if user's access has been revoked by the admin
 */
 module.exports.checkUserAccess = async (req, res, next) => {
-  var authUser = await getAuthUserWithProjection(req.tokenData.email, {
+  var authUser = await getAuthUserWithProjection(req.tokenData.authId, {
     _id: 1,
     disabled: 1,
   });
@@ -266,7 +266,7 @@ module.exports.checkUserAccess = async (req, res, next) => {
   Check if user's access has been revoked by the admin/account is verified
 */
 module.exports.checkAdminAccess = async (req, res, next) => {
-  var authUser = await getAuthUserWithProjection(req.tokenData.email, {
+  var authUser = await getAuthUserWithProjection(req.tokenData.authId, {
     _id: 1,
     admin: 1,
     adminVerified: 1,
