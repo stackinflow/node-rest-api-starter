@@ -4,17 +4,21 @@ const {
   USER_NOT_EXISTS,
   USER_DATA_UPDATE_FAILED,
 } = require("../utils/constants").errors;
-
 const {
   SUCCESS,
   FETCHED_USER_DATA,
   UPDATED_USER_DATA,
 } = require("../utils/constants").successMessages;
+const crypto = require("crypto");
 
 module.exports.createUser = async (userData) => {
   var user = new User({
     userId: userData._id,
     email: userData.email,
+    username:
+      userData.firstName.toString().toLowerCase() +
+      "_" +
+      crypto.randomBytes(3).toString("hex"),
     firstName: userData.firstName,
     lastName: userData.lastName,
     photoUrl: userData.photoUrl,
@@ -89,3 +93,17 @@ const _immutableFields = [
 function _isAllowed(key) {
   return !_immutableFields.includes(key);
 }
+
+module.exports.fetchNameOfUser = async function (email) {
+  await User.findOne({ email: email }, { firstName: 1, lastName: 1 })
+    .then((document) => {
+      if (!document) {
+        return " ";
+      }
+      return document.firstName + " " + document.lastName;
+    })
+    .catch((err) => {
+      console.log(err);
+      return " ";
+    });
+};

@@ -9,6 +9,8 @@ const {
   BASIC,
 } = require("../../api/v1/utils/constants").headers;
 
+var name = "Mohammad Fayaz";
+
 var data = {
   email: "fayaz5@test.com",
   password: "Pass!w0rd",
@@ -43,10 +45,11 @@ module.exports = (chai, server) => {
     it("should not login as user is not existing", (done) => {
       chai
         .request(server)
-        .patch(baseUrl + "/login")
+        .post(baseUrl + "/login")
         .set("Content-Type", "application/json")
         .send(data)
         .end((err, response) => {
+          console.log(response.body);
           response.should.not.have.status(200);
           response.should.not.have.header(ACCESS_TOKEN);
           response.should.not.have.header(REFRESH_TOKEN);
@@ -58,8 +61,13 @@ module.exports = (chai, server) => {
       chai
         .request(server)
         .post(baseUrl + "/register")
-        .send(data)
+        .send({
+          name: name,
+          email: data.email,
+          password: data.password,
+        })
         .end((err, response) => {
+          console.log(response.body);
           response.should.have.status(201);
           done();
         });
@@ -77,7 +85,11 @@ module.exports = (chai, server) => {
       chai
         .request(server)
         .post(baseUrl + "/register")
-        .send(data)
+        .send({
+          name: name,
+          email: data.email,
+          password: data.password,
+        })
         .end((err, response) => {
           response.should.not.have.status(201);
           response.should.have.status(409);
@@ -101,6 +113,7 @@ module.exports = (chai, server) => {
         .post(baseUrl + "/token/resend")
         .send(data)
         .end((err, response) => {
+          console.log(response.body);
           response.should.have.status(200);
           done();
         });

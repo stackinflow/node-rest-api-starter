@@ -77,7 +77,11 @@ const {
   ACCESS_DISABLED,
   LOGIN_SUCCESS,
 } = require("../utils/constants").successMessages;
-const { createUser, deleteUser } = require("../controllers/user");
+const {
+  createUser,
+  deleteUser,
+  fetchNameOfUser,
+} = require("../controllers/user");
 const { default: Axios } = require("axios");
 const { joinWithCommaSpace, joinWithSpace } = require("../../../core/helpers");
 
@@ -110,7 +114,13 @@ module.exports.registerWithEmail = async (req, res, registerAsAdmin) => {
   // creating user in database
   await newAuthUser.save(async (error, savedUser) => {
     if (savedUser) {
-      await sendVerificationMail(savedUser._id, savedUser.email);
+      savedUser.firstName = req.body.name.toString().split(" ")[0];
+      savedUser.lastName = req.body.name.toString().split(" ")[1];
+      await sendVerificationMail(
+        savedUser._id,
+        savedUser.email,
+        savedUser.firstName + " " + savedUser.lastName
+      );
       await _createUserDocument(savedUser);
       return res.status(201).json({
         status: SUCCESS,
@@ -228,7 +238,9 @@ module.exports.resendAccVerificatinToken = async (req, res) => {
       message: INCORRECT_PASSWORD,
     });
 
-  await sendNewVerificationMail(authUser._id, authUser.email);
+  const name = await fetchNameOfUser(req.body.email);
+
+  await sendNewVerificationMail(authUser._id, authUser.email, name);
 
   res.status(200).json({
     status: SUCCESS,
