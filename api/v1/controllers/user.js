@@ -27,14 +27,16 @@ module.exports.createUser = async (userData) => {
 };
 
 module.exports.getUser = async (req, res) => {
-  await User.findById(req.tokenData.authId, {
-    _id: 0,
-    createdAt: 0,
-    updatedAt: 0,
-    __v: 0,
-  })
-    .then((document) => {
-      if (!document) {
+  await User.findById(
+    req.tokenData.authId,
+    {
+      _id: 0,
+      createdAt: 0,
+      updatedAt: 0,
+      __v: 0,
+    },
+    (error, user) => {
+      if (error) {
         return res.status(403).json({
           status: FAILED,
           message: USER_NOT_EXISTS,
@@ -43,10 +45,10 @@ module.exports.getUser = async (req, res) => {
       return res.status(200).json({
         status: SUCCESS,
         message: FETCHED_USER_DATA,
-        user: document,
+        user: user,
       });
-    })
-    .catch((err) => console.log(err));
+    }
+  );
 };
 
 module.exports.updateUser = async (req, res) => {

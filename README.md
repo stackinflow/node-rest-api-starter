@@ -2,7 +2,7 @@
 
 <img src="https://raw.githubusercontent.com/stackinflow/node-rest-api-starter/master/assets/banner-node-rest-api.png">
 
-[![stackinflow](https://img.shields.io/badge/stackinflow-opensource-brightgreen)](https://stackinflow.github.io/) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/215290ffb548419bbff773ca8abcdb3d)](https://app.codacy.com/gh/stackinflow/node-rest-api-starter?utm_source=github.com&utm_medium=referral&utm_content=stackinflow/node-rest-api-starter&utm_campaign=Badge_Grade_Dashboard) [![Build Status](https://github.com/stackinflow/node-rest-api-starter/workflows/Mocha-Tests/badge.svg)](https://github.com/stackinflow/node-rest-api-starter/actions)
+[![stackinflow](https://img.shields.io/badge/stackinflow-opensource-brightgreen)](https://stackinflow.github.io/) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/215290ffb548419bbff773ca8abcdb3d)](https://app.codacy.com/gh/stackinflow/node-rest-api-starter?utm_source=github.com&utm_medium=referral&utm_content=stackinflow/node-rest-api-starter&utm_campaign=Badge_Grade_Dashboard) [![Build Status](https://github.com/stackinflow/node-rest-api-starter/workflows/Mocha-Tests/badge.svg)](https://github.com/stackinflow/node-rest-api-starter/actions) [![GitHub issues](https://img.shields.io/github/issues/stackinflow/node-rest-api-starter)](https://github.com/stackinflow/node-rest-api-starter/issues) [![Twitter](https://img.shields.io/twitter/url?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=https%3A%2F%2Fgithub.com%2Fstackinflow%2Fnode-rest-api-starter%2F) ![GitHub Hacktoberfest combined status](https://img.shields.io/github/hacktoberfest/2020/stackinflow/node-rest-api-starter) ![Gitter](https://img.shields.io/gitter/room/stackinflow/node-rest-api-starter) ![GitHub repo size](https://img.shields.io/github/repo-size/stackinflow/node-rest-api-starter) [![Created Badge](https://badges.pufler.dev/created/stackinflow/node-rest-api-starter)](https://badges.pufler.dev) [![Updated Badge](https://badges.pufler.dev/updated/stackinflow/node-rest-api-starter)](https://badges.pufler.dev)
 
 <a href="https://www.buymeacoffee.com/fayaz" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-violet.png" alt="Buy Me A Coffee" height="45px" width="180px" ></a>
 
@@ -23,6 +23,7 @@ This repository is a template to avoid rewriting all the basic authentication co
 <!--
 (#why-this-template)
 -->
+
 ## Why this template
 
 - This repository includes setup of all basic things required to start a MEAN/MERN stack backend
@@ -40,6 +41,7 @@ This repository is a template to avoid rewriting all the basic authentication co
 <!--
 (#project-architecture-structrue)
 -->
+
 ## Project architecture & Directories Structure
 
 ```
@@ -98,6 +100,7 @@ This repository is a template to avoid rewriting all the basic authentication co
 <!--
 (#tech-stack)
 -->
+
 ## Tech stack
 
 Node.js, MongoDB
@@ -145,7 +148,6 @@ Tests are written using Mocha and Chai
 ### CI/CD
 
 Not implemented yet
-
 
 ## Project setup
 
@@ -403,9 +405,11 @@ npm start
 ```bash
 npm test
 ```
+
 <!--
 (#setup-gh-actions)
 -->
+
 ## Setup GitHub actions
 
 Mock environment values
@@ -444,11 +448,13 @@ SENDGRID_USERNAME=John
 client_id=
 client_secret=
 ```
+
 Create such config locally in a text file or just copy the config from `.env` of your db, then head over to `Secrets` section of your repo, an ideal link would be like this https://github.com/username/node-rest-api-starter/settings/secrets when you replace `username` with your own github username, then create a new Secret there with key as `ENV_VARS_LOCALHOST` and the value as whole of your file which you have just created in the above step. When you make a pull request to the master branch this will get executed.
 
 <!--
 (#authors)
 -->
+
 ## Authors
 
 | ![image](https://avatars3.githubusercontent.com/u/35001172?s=128&v=4)                                                                                                                                                                                                                                                                                                                                                                         | ![image](https://avatars1.githubusercontent.com/u/20471162?s=128&v=4)                                                                                                                                                                                                                                                                                                                                                                                                                 |
@@ -458,6 +464,7 @@ Create such config locally in a text file or just copy the config from `.env` of
 <!--
 (#contributing)
 -->
+
 ## Contributing
 
 Check [Contributing](CONTRIBUTING.md) file
