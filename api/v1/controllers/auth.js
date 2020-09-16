@@ -60,6 +60,7 @@ const {
   OAUTH_LOGIN_FAILED,
   OAUTH_TOKEN_REFRESH_ERROR,
   LOGIN_FAILED,
+  OTP_ALREADY_SENT,
 } = require("../utils/constants").errors;
 const {
   SUCCESS,
@@ -315,11 +316,15 @@ module.exports.sendPasswordResetCode = async (req, res) => {
   if (!authUser)
     return res.status(400).json({ status: FAILED, message: USER_NOT_EXISTS });
 
-  await sendOTPForPasswordReset(authUser._id, authUser.email);
-
-  res.status(200).json({
-    status: SUCCESS,
-    message: OTP_SENT,
+  const result = await sendOTPForPasswordReset(authUser._id, authUser.email);
+  if (result)
+    return res.status(200).json({
+      status: SUCCESS,
+      message: OTP_SENT,
+    });
+  return res.status(400).json({
+    status: FAILED,
+    message: OTP_ALREADY_SENT,
   });
 };
 

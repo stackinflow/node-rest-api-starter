@@ -25,6 +25,8 @@ const SuccessMessages = Object.freeze({
 
 const errorMessages = Object.freeze({
   FAILED: "failed",
+  OTP_ALREADY_SENT:
+    "We've already sent an OTP to the registered email, please try resend endpoint to get a new OTP.",
   ACCESS_TOKEN_EXPIRED: "Access token expired",
   INVALID_AUTH_TYPE: "Unsupported type of authentication",
   INVALID_PASSWORD:
