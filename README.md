@@ -2,21 +2,22 @@
 
 <img src="https://raw.githubusercontent.com/stackinflow/node-rest-api-starter/master/assets/banner-node-rest-api.png">
 
-[![stackinflow](https://img.shields.io/badge/stackinflow-opensource-brightgreen)](https://stackinflow.github.io/) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/215290ffb548419bbff773ca8abcdb3d)](https://app.codacy.com/gh/stackinflow/node-rest-api-starter?utm_source=github.com&utm_medium=referral&utm_content=stackinflow/node-rest-api-starter&utm_campaign=Badge_Grade_Dashboard) [![Build Status](https://github.com/stackinflow/node-rest-api-starter/workflows/Mocha-Tests/badge.svg)](https://github.com/stackinflow/node-rest-api-starter/actions) [![GitHub issues](https://img.shields.io/github/issues/stackinflow/node-rest-api-starter)](https://github.com/stackinflow/node-rest-api-starter/issues) [![Twitter](https://img.shields.io/twitter/url?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=https%3A%2F%2Fgithub.com%2Fstackinflow%2Fnode-rest-api-starter%2F) ![Gitter](https://img.shields.io/gitter/room/stackinflow/node-rest-api-starter) ![GitHub repo size](https://img.shields.io/github/repo-size/stackinflow/node-rest-api-starter) [![Created Badge](https://badges.pufler.dev/created/stackinflow/node-rest-api-starter)](https://badges.pufler.dev) [![Updated Badge](https://badges.pufler.dev/updated/stackinflow/node-rest-api-starter)](https://badges.pufler.dev)
+[![stackinflow](https://img.shields.io/badge/stackinflow-opensource-brightgreen)](https://stackinflow.github.io/) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/215290ffb548419bbff773ca8abcdb3d)](https://app.codacy.com/gh/stackinflow/node-rest-api-starter?utm_source=github.com&utm_medium=referral&utm_content=stackinflow/node-rest-api-starter&utm_campaign=Badge_Grade_Dashboard) [![Build Status](https://github.com/stackinflow/node-rest-api-starter/workflows/Mocha-Tests/badge.svg)](https://github.com/stackinflow/node-rest-api-starter/actions) [![GitHub issues](https://img.shields.io/github/issues/stackinflow/node-rest-api-starter)](https://github.com/stackinflow/node-rest-api-starter/issues) ![Twitter URL](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fstackinflow%2Fnode-rest-api-starter) ![Gitter](https://img.shields.io/gitter/room/stackinflow/node-rest-api-starter) ![GitHub repo size](https://img.shields.io/github/repo-size/stackinflow/node-rest-api-starter) [![Created Badge](https://badges.pufler.dev/created/stackinflow/node-rest-api-starter)](https://badges.pufler.dev) [![Updated Badge](https://badges.pufler.dev/updated/stackinflow/node-rest-api-starter)](https://badges.pufler.dev)
 
-<a href="https://www.buymeacoffee.com/fayaz" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-violet.png" alt="Buy Me A Coffee" height="45px" width="180px" ></a>
+
+<a href="https://www.buymeacoffee.com/fayaz" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-green.png" alt="Buy Me A Coffee" height="45px" width="180px" ></a>
 
 This repository is a template to avoid rewriting all the basic authentication code for REST API's built with Express.js, MongoDB.
 
 ## Table of contents
 
 1. [Why this template](#why-this-template)
-2. [Project architecture & Directories Structure](#project-architecture-structrue)
+2. [Project architecture and Directories Structure](#project-architecture-and-directories-structure)
 3. [Tech stack](#tech-stack)
 4. [Install and configure Node.js](#installation-of-nodejs)
-5. [Mongodb Installation and Configuration](#mongodb-installation-configuration)
+5. [MongoDB installation and configuration](#mongodb-installation-and-configuration)
 6. [Setup and Run the Project](#setup-and-run-the-project)
-7. [Setup GitHub actions](#setup-gh-actions)
+7. [Setup GitHub actions](#setup-github-actions)
 8. [Authors](#authors)
 9. [Contributing](#contributing)
 
@@ -38,11 +39,11 @@ This repository is a template to avoid rewriting all the basic authentication co
 - Token based email verification and OTP based password reset
 - Body field validators
 
-<!--
-(#project-architecture-structrue)
--->
 
-## Project architecture & Directories Structure
+<!--
+(#project-architecture-and-directories-structure)
+-->
+## Project architecture and Directories Structure
 
 ```
 .
@@ -199,10 +200,10 @@ sudo apt install build-essential
 ```
 
 <!--
-(#mongodb-installation-configuration)
+(#mongodb-installation-and-configuration)
 -->
 
-## Mongodb installation and configuration
+## MongoDB installation and configuration
 
 In case you face any issues, refer official [docs](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/)
 
@@ -406,8 +407,9 @@ npm start
 npm test
 ```
 
+
 <!--
-(#setup-gh-actions)
+(#setup-github-actions)
 -->
 
 ## Setup GitHub actions
