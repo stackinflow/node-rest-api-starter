@@ -207,18 +207,18 @@ sudo apt install build-essential
 
 In case you face any issues, refer official [docs](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/)
 
-#### Installing mongodb v4.2
+#### Installing mongodb v4.4
 
 a. Import the public key used by the package management system.
 
 ```bash
-wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
+wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
 ```
 
 b. Create a list file for MongoDB
 
 ```bash
-echo  "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
 ```
 
 c. Reload local package database.
@@ -230,17 +230,17 @@ sudo apt-get update
 d. Install the MongoDB packages
 
 ```bash
-sudo apt-get install -y mongod
+sudo apt-get install -y mongodb-org
 ```
 
 e. Optional. Although you can specify any available version of MongoDB
 
 ```bash
-echo  "mongodb-org hold" | sudo dpkg --set-selections
-echo  "mongodb-org-server hold" | sudo dpkg --set-selections
-echo  "mongodb-org-shell hold" | sudo dpkg --set-selections
-echo  "mongodb-org-mongos hold" | sudo dpkg --set-selections
-echo  "mongodb-org-tools hold" | sudo dpkg --set-selections
+echo "mongodb-org hold" | sudo dpkg --set-selections
+echo "mongodb-org-server hold" | sudo dpkg --set-selections
+echo "mongodb-org-shell hold" | sudo dpkg --set-selections
+echo "mongodb-org-mongos hold" | sudo dpkg --set-selections
+echo "mongodb-org-tools hold" | sudo dpkg --set-selections
 ```
 
 #### Configure mongodb
