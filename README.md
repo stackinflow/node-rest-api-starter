@@ -207,7 +207,7 @@ sudo apt install build-essential
 
 In case you face any issues, refer official [docs](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/)
 
-#### Installing mongodb v4.2
+#### Installing mongodb v4.4
 
 a. Import the public key used by the package management system.
 
@@ -230,7 +230,7 @@ sudo apt-get update
 d. Install the MongoDB packages
 
 ```bash
-sudo apt-get install -y mongod
+sudo apt-get install -y mongodb-org
 ```
 
 e. Optional. Although you can specify any available version of MongoDB
