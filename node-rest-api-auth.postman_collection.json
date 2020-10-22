@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "93be77bd-28f5-4d79-8623-c5c186e4f5c5",
+		"_postman_id": "86a0886f-ee63-4b74-bedb-e29e2dd16e3b",
 		"name": "node-rest-api-auth",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -23,14 +23,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/register",
+							"raw": "{{baseUrlAPIv1}}/auth/register",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"register"
 							]
@@ -53,14 +50,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/login",
+							"raw": "{{baseUrlAPIv1}}/auth/login",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"login"
 							]
@@ -74,15 +68,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:6000/api/v1/auth/token/verify?t=b8725071c46a9f0af208693caf135a177def7c2d77b702720a38eeab3bd6fc79d95e90e3e1be0fdd12bf20a8e345525812a0a75d50545e93c78c1908d7f733f1",
-							"protocol": "http",
+							"raw": "{{baseUrlAPIv1}}/auth/token/verify?t=b8725071c46a9f0af208693caf135a177def7c2d77b702720a38eeab3bd6fc79d95e90e3e1be0fdd12bf20a8e345525812a0a75d50545e93c78c1908d7f733f1",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"token",
 								"verify"
@@ -112,14 +102,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/token/resend",
+							"raw": "{{baseUrlAPIv1}}/auth/token/resend",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"token",
 								"resend"
@@ -149,14 +136,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/password",
+							"raw": "{{baseUrlAPIv1}}/auth/password",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"password"
 							]
@@ -179,14 +163,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/password/reset/code",
+							"raw": "{{baseUrlAPIv1}}/auth/password/reset/code",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"password",
 								"reset",
@@ -211,14 +192,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/password/reset/code/resend",
+							"raw": "{{baseUrlAPIv1}}/auth/password/reset/code/resend",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"password",
 								"reset",
@@ -244,14 +222,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/password/reset/",
+							"raw": "{{baseUrlAPIv1}}/auth/password/reset/",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"password",
 								"reset",
@@ -273,14 +248,11 @@
 							}
 						],
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/token",
+							"raw": "{{baseUrlAPIv1}}/auth/token",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"token"
 							]
@@ -310,14 +282,11 @@
 							}
 						],
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/",
+							"raw": "{{baseUrlAPIv1}}/auth/",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								""
 							]
@@ -340,14 +309,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/facebook",
+							"raw": "{{baseUrlAPIv1}}/auth/facebook",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"facebook"
 							]
@@ -370,14 +336,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/google",
+							"raw": "{{baseUrlAPIv1}}/auth/google",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"google"
 							]
@@ -406,14 +369,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/admin/auth/login",
+							"raw": "{{baseUrlAPIv1}}/admin/auth/login",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"admin",
 								"auth",
 								"login"
@@ -437,14 +397,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/admin/auth/register",
+							"raw": "{{baseUrlAPIv1}}/admin/auth/register",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"admin",
 								"auth",
 								"register"
@@ -469,14 +426,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:6000/api/v1/admin/auth/users",
+							"raw": "{{baseUrlAPIv1}}/admin/auth/users",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"admin",
 								"auth",
 								"users"
@@ -501,14 +455,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:6000/api/v1/admin/auth/admins",
+							"raw": "{{baseUrlAPIv1}}/admin/auth/admins",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"admin",
 								"auth",
 								"admins"
@@ -542,14 +493,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/admin/auth/user/disable",
+							"raw": "{{baseUrlAPIv1}}/admin/auth/user/disable",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"admin",
 								"auth",
 								"user",
@@ -584,14 +532,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/admin/auth/user/enable",
+							"raw": "{{baseUrlAPIv1}}/admin/auth/user/enable",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"admin",
 								"auth",
 								"user",
@@ -630,14 +575,11 @@
 							}
 						],
 						"url": {
-							"raw": "localhost:6000/api/v1/user/",
+							"raw": "{{baseUrlAPIv1}}/user/",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"user",
 								""
 							]
@@ -670,14 +612,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/user/",
+							"raw": "{{baseUrlAPIv1}}/user/",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"user",
 								""
 							]
@@ -687,6 +626,13 @@
 				}
 			],
 			"protocolProfileBehavior": {}
+		}
+	],
+	"variable": [
+		{
+			"id": "71fb6897-8809-4567-91b5-79e5b5720491",
+			"key": "baseUrlAPIv1",
+			"value": "localhost:6000/api/v1"
 		}
 	],
 	"protocolProfileBehavior": {}
