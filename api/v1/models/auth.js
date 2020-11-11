@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
+const { AUTH_COLLECTION } = require("../utils/constants").collections;
 
-const userSchema = new mongoose.Schema(
+const authSchema = new mongoose.Schema(
   {
     email: {
       type: String,
@@ -10,7 +11,6 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
       min: 8,
       max: 1024,
     },
@@ -34,8 +34,11 @@ const userSchema = new mongoose.Schema(
     refreshToken: {
       type: String,
     },
+    oauthToken: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("auth", userSchema);
+module.exports = mongoose.model(AUTH_COLLECTION, authSchema);

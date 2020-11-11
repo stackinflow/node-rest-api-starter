@@ -15,6 +15,7 @@ class Email {
   }
 
   _sendEmail(mailOptions) {
+    // set the api key
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
     const msg = {
@@ -34,22 +35,26 @@ class Email {
           console.log("Email sent");
         },
         (error) => {
-          console.error(error);
+          // console.error(error);
           if (error.response) {
-            console.error(error.response.body);
+            // console.error(error.response.body);
           }
         }
       );
   }
 
-  accVerification(token, email) {
+  accVerification(token, email, name) {
     console.log("sending mail");
     try {
+      // this host will be used for sending the account verification link to the user
+      // when the user registers
       const localHost = process.env.host;
 
+      // this will render the html placing the link and host wherever specified
       const render = pug.renderFile(__dirname + "/templates/verify_email.pug", {
         link: `${localHost}/api/v1/auth/token/verify?t=${token}`,
         host: localHost,
+        name: name.replace("undefined", ""),
       });
 
       var mailOptions = {

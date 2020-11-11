@@ -1,12 +1,15 @@
 const Auth = require("../../api/v1/models/auth");
 const Token = require("../../api/v1/models/token");
+const User = require("../../api/v1/models/user");
 const {
   ACCESS_TOKEN,
   REFRESH_TOKEN,
   AUTHORIZATION_HEADER,
   BEARER,
   BASIC,
-} = require("../../api/v1/utils/constants");
+} = require("../../api/v1/utils/constants").headers;
+
+var name = "Mohammad Fayaz";
 
 var data = {
   email: "fayaz5@test.com",
@@ -15,7 +18,7 @@ var data = {
 
 const baseUrl = "/api/v1/auth";
 var verificationToken;
-var accessToken, refreshToken, newRefreshToken;
+var accessToken, refreshToken;
 
 module.exports = (chai, server) => {
   // because they come with mocha in command line
@@ -23,12 +26,15 @@ module.exports = (chai, server) => {
   /*eslint no-undef: "error"*/
   /*eslint no-unused-vars: "error"*/
 
-  before(() => {
+  before(function () {
+    this.timeout(5000);
     /* eslint-disable */
     return new Promise((resolve, reject) => {
       Auth.deleteMany().then((data) => {
         Token.deleteMany().then((data) => {
-          return resolve();
+          User.deleteMany().then((data) => {
+            return resolve();
+          });
         });
       });
     });
@@ -39,7 +45,7 @@ module.exports = (chai, server) => {
     it("should not login as user is not existing", (done) => {
       chai
         .request(server)
-        .patch(baseUrl + "/login")
+        .post(baseUrl + "/login")
         .set("Content-Type", "application/json")
         .send(data)
         .end((err, response) => {
@@ -54,18 +60,34 @@ module.exports = (chai, server) => {
       chai
         .request(server)
         .post(baseUrl + "/register")
-        .send(data)
+        .send({
+          name: name,
+          email: data.email,
+          password: data.password,
+        })
         .end((err, response) => {
           response.should.have.status(201);
           done();
         });
     });
 
+    it("should create a document in User collection", (done) => {
+      User.find().then((array) => {
+        array.length.should.equal(1);
+        array[0].email.should.equal(data.email);
+        done();
+      });
+    });
+
     it("should not register duplicate users", (done) => {
       chai
         .request(server)
         .post(baseUrl + "/register")
-        .send(data)
+        .send({
+          name: name,
+          email: data.email,
+          password: data.password,
+        })
         .end((err, response) => {
           response.should.not.have.status(201);
           response.should.have.status(409);
@@ -297,7 +319,7 @@ module.exports = (chai, server) => {
       });
     });
 
-    it("should login with new password after resetting and tokens should be different from earlier ones", (done) => {
+    it("should login with new password after resetting and should have tokens", (done) => {
       chai
         .request(server)
         .post(baseUrl + "/login")
@@ -309,29 +331,8 @@ module.exports = (chai, server) => {
           response.should.have.header(ACCESS_TOKEN);
           response.should.have.header(REFRESH_TOKEN);
 
-          var tAccessToken = response.header[ACCESS_TOKEN];
-          tAccessToken.should.not.equal(accessToken);
-
-          var tRefreshToken = response.header[REFRESH_TOKEN];
-          tRefreshToken.should.not.equal(refreshToken);
-
           accessToken = response.header[ACCESS_TOKEN];
-          newRefreshToken = response.header[REFRESH_TOKEN];
-          done();
-        });
-    });
-
-    it("should not give new access token as refresh token is old one", (done) => {
-      chai
-        .request(server)
-        .get(baseUrl + "/token")
-        .set("Content-Type", "application/json")
-        .set(AUTHORIZATION_HEADER, BASIC + " " + refreshToken)
-        .end((err, response) => {
-          // console.log(response.body);
-          response.should.not.have.status(200);
-          response.should.not.have.header(ACCESS_TOKEN);
-          response.should.not.have.header(REFRESH_TOKEN);
+          refreshToken = response.header[REFRESH_TOKEN];
           done();
         });
     });
@@ -341,7 +342,7 @@ module.exports = (chai, server) => {
         .request(server)
         .get(baseUrl + "/token")
         .set("Content-Type", "application/json")
-        .set(AUTHORIZATION_HEADER, BEARER + " " + newRefreshToken)
+        .set(AUTHORIZATION_HEADER, BEARER + " " + refreshToken)
         .end((err, response) => {
           response.should.not.have.status(200);
           response.should.not.have.header(ACCESS_TOKEN);
@@ -355,20 +356,13 @@ module.exports = (chai, server) => {
         .request(server)
         .get(baseUrl + "/token")
         .set("Content-Type", "application/json")
-        .set(AUTHORIZATION_HEADER, BASIC + " " + newRefreshToken)
+        .set(AUTHORIZATION_HEADER, BASIC + " " + refreshToken)
         .end((err, response) => {
           response.should.have.status(200);
           response.should.have.header(ACCESS_TOKEN);
           response.should.have.header(REFRESH_TOKEN);
 
-          // var tRt = response.header[REFRESH_TOKEN];
-          // tRt.should.not.equal(newRefreshToken);
-
-          // var tAt = response.header[ACCESS_TOKEN];
-          // tAt.should.not.equal(accessToken);
-
           accessToken = response.header[ACCESS_TOKEN];
-          refreshToken = response.header[REFRESH_TOKEN];
           done();
         });
     });
@@ -385,8 +379,15 @@ module.exports = (chai, server) => {
         });
     });
 
-    it("no users should exist in db after deleting", (done) => {
+    it("no users should exist in auth collection after deleting", (done) => {
       Auth.find().then((users) => {
+        users.should.have.length(0);
+        done();
+      });
+    });
+
+    it("no users should exist in user collection after deleting", (done) => {
+      User.find().then((users) => {
         users.should.have.length(0);
         done();
       });

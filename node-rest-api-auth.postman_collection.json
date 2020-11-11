@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "93be77bd-28f5-4d79-8623-c5c186e4f5c5",
+		"_postman_id": "86a0886f-ee63-4b74-bedb-e29e2dd16e3b",
 		"name": "node-rest-api-auth",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -23,14 +23,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/register",
+							"raw": "{{baseUrlAPIv1}}/auth/register",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"register"
 							]
@@ -53,14 +50,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/login",
+							"raw": "{{baseUrlAPIv1}}/auth/login",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"login"
 							]
@@ -74,15 +68,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:6000/api/v1/auth/token/verify?t=b8725071c46a9f0af208693caf135a177def7c2d77b702720a38eeab3bd6fc79d95e90e3e1be0fdd12bf20a8e345525812a0a75d50545e93c78c1908d7f733f1",
-							"protocol": "http",
+							"raw": "{{baseUrlAPIv1}}/auth/token/verify?t=b8725071c46a9f0af208693caf135a177def7c2d77b702720a38eeab3bd6fc79d95e90e3e1be0fdd12bf20a8e345525812a0a75d50545e93c78c1908d7f733f1",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"token",
 								"verify"
@@ -112,14 +102,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/token/resend",
+							"raw": "{{baseUrlAPIv1}}/auth/token/resend",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"token",
 								"resend"
@@ -149,14 +136,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/password",
+							"raw": "{{baseUrlAPIv1}}/auth/password",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"password"
 							]
@@ -179,14 +163,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/password/reset/code",
+							"raw": "{{baseUrlAPIv1}}/auth/password/reset/code",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"password",
 								"reset",
@@ -211,14 +192,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/password/reset/code/resend",
+							"raw": "{{baseUrlAPIv1}}/auth/password/reset/code/resend",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"password",
 								"reset",
@@ -244,14 +222,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/password/reset/",
+							"raw": "{{baseUrlAPIv1}}/auth/password/reset/",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"password",
 								"reset",
@@ -268,19 +243,16 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Basic eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ0b2RvLTcuaGVyb2t1YXBwLmNvbSIsInN1YiI6ImFwaV9SZWZyZXNoVG9rZW4iLCJpc3MiOiJ0b2RvLTcuaGVyb2t1YXBwLmNvbSIsInVzZXJfaWQiOiI1ZjMxMmMzOTNlNjlhZjYzMDhmMjk5YjQiLCJpYXQiOjE1OTcwNjI5NjcsImV4cCI6MTU5NzkyNjk2N30.gSMNtNsLWSO33sITo0u4EJ5aoZTzbmpF-016AlTaGwtMCgw0VBOceqPAfOcHggTZ28p2jLImfIJYzZuw_6qqKSA3Lg9EHciUEcAM3-PM5TtFB9jxA3-7Z1Mky83hiCm7PZY8P7M_8AVU62iCj6JfTDF9uYFwLP4LjDnv_9zoeDZBeO5sW_nDJE221Ho5Np7Zhtlm8BTjBcv_slR6n3oX2N2df6fo8cwn6wpmdwHsacTdxqTQfdd1QuD1wRFIIDsatT51AZMlYvIROCp3ev15fmIWoGzHa3enb80eqiicty-R_O9qOyub3TaEE7QH9pgPrR3IixS5TI4e4Asz4YX5uA",
+								"value": "Basic eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJUb2tlblVzZXJzIiwic3ViIjoiYXBpX1JlZnJlc2hUb2tlbiIsImlzcyI6IkZheWF6IiwidXNlcl9pZCI6IjVmM2NlOGUyYzcwYzY4MjdiOTQwMTk3ZCIsImlhdCI6MTU5Nzg1NTQwNywiZXhwIjoxNTk4NzE5NDA3fQ.TScekhuk0mdVKLqRUPaxHxvM_Dmrz2pnNB4-7bmtZeL_k2o19gV0vmolZm4e819dWNyd4Q4DFr7okNzLTAvGD9JmoUqYPTJILQ3oOPcNPaTqSXcdAH5lZgiE1-jERdR_-X-1Ntthaazjx43LmtqvQQyI27LeFUbpjYDMvZN1v10",
 								"type": "text"
 							}
 						],
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/token",
+							"raw": "{{baseUrlAPIv1}}/auth/token",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								"token"
 							]
@@ -310,16 +282,67 @@
 							}
 						],
 						"url": {
-							"raw": "localhost:6000/api/v1/auth/",
+							"raw": "{{baseUrlAPIv1}}/auth/",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"auth",
 								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "facebook login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"accessToken\":\"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrlAPIv1}}/auth/facebook",
+							"host": [
+								"{{baseUrlAPIv1}}"
+							],
+							"path": [
+								"auth",
+								"facebook"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "google login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"accessToken\":\"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrlAPIv1}}/auth/google",
+							"host": [
+								"{{baseUrlAPIv1}}"
+							],
+							"path": [
+								"auth",
+								"google"
 							]
 						}
 					},
@@ -346,14 +369,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/admin/auth/login",
+							"raw": "{{baseUrlAPIv1}}/admin/auth/login",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"admin",
 								"auth",
 								"login"
@@ -377,14 +397,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/admin/auth/register",
+							"raw": "{{baseUrlAPIv1}}/admin/auth/register",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"admin",
 								"auth",
 								"register"
@@ -409,14 +426,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:6000/api/v1/admin/auth/users",
+							"raw": "{{baseUrlAPIv1}}/admin/auth/users",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"admin",
 								"auth",
 								"users"
@@ -441,14 +455,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:6000/api/v1/admin/auth/admins",
+							"raw": "{{baseUrlAPIv1}}/admin/auth/admins",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"admin",
 								"auth",
 								"admins"
@@ -482,14 +493,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/admin/auth/user/disable",
+							"raw": "{{baseUrlAPIv1}}/admin/auth/user/disable",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"admin",
 								"auth",
 								"user",
@@ -524,14 +532,11 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:6000/api/v1/admin/auth/user/enable",
+							"raw": "{{baseUrlAPIv1}}/admin/auth/user/enable",
 							"host": [
-								"localhost"
+								"{{baseUrlAPIv1}}"
 							],
-							"port": "6000",
 							"path": [
-								"api",
-								"v1",
 								"admin",
 								"auth",
 								"user",
@@ -543,6 +548,91 @@
 				}
 			],
 			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "get user",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJUb2tlblVzZXJzIiwic3ViIjoiYXBpX0FjY2Vzc1Rva2VuIiwiaXNzIjoiRmF5YXoiLCJlbWFpbCI6InNhbGVlbWFiZHVsMDU1MDUwQGdtYWlsLmNvbSIsImlhdCI6MTU5ODAzNDgxNSwiZXhwIjoxNTk4MTIxMjE1fQ.Vzd5q5kUWZtxqSmsr_1ES2TAgpWKGT13N3UB-kbveVMJ8048FL9W-41hPn7kMJ-gKPZbp5HRdm2I5SzBxPumnJIvMUmDpob6IDjQP57PWt--ktO49p6ADrXRGaWa6vZXJvPghZZ3a4S9J_0ZWqff5FWjsMqQek5ZS-9cm9Ukga8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrlAPIv1}}/user/",
+							"host": [
+								"{{baseUrlAPIv1}}"
+							],
+							"path": [
+								"user",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update user",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJUb2tlblVzZXJzIiwic3ViIjoiYXBpX0FjY2Vzc1Rva2VuIiwiaXNzIjoiRmF5YXoiLCJlbWFpbCI6InNhbGVlbWFiZHVsMDU1MDUwQGdtYWlsLmNvbSIsImlhdCI6MTU5ODAzNDgxNSwiZXhwIjoxNTk4MTIxMjE1fQ.Vzd5q5kUWZtxqSmsr_1ES2TAgpWKGT13N3UB-kbveVMJ8048FL9W-41hPn7kMJ-gKPZbp5HRdm2I5SzBxPumnJIvMUmDpob6IDjQP57PWt--ktO49p6ADrXRGaWa6vZXJvPghZZ3a4S9J_0ZWqff5FWjsMqQek5ZS-9cm9Ukga8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"gender\":\"Female\",\n    \"age\": 25,\n    \"locatin\":\"Nizamabad\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrlAPIv1}}/user/",
+							"host": [
+								"{{baseUrlAPIv1}}"
+							],
+							"path": [
+								"user",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"variable": [
+		{
+			"id": "71fb6897-8809-4567-91b5-79e5b5720491",
+			"key": "baseUrlAPIv1",
+			"value": "localhost:6000/api/v1"
 		}
 	],
 	"protocolProfileBehavior": {}
