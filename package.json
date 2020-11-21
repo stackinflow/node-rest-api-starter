@@ -44,7 +44,7 @@
     "express-brute-memcached": "0.0.1",
     "helmet": "^4.1.1",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.10.9",
+    "mongoose": "^5.10.10",
     "multer": "^1.4.2",
     "nodemailer": "^6.4.16",
     "otp-generator": "^1.1.0",
