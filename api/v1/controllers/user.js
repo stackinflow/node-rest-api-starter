@@ -100,15 +100,17 @@ function _isAllowed(key) {
 }
 
 module.exports.fetchNameOfUser = async function (email) {
+  var name = " ";
   await User.findOne({ email: email }, { firstName: 1, lastName: 1 })
     .then((document) => {
       if (!document) {
-        return " ";
+        name = " ";
       }
-      return document.firstName + " " + document.lastName;
+      name = document.firstName + " " + document.lastName;
     })
     .catch((err) => {
       console.log(err);
-      return " ";
+      name = " ";
     });
+  return name;
 };

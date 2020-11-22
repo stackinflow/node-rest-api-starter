@@ -1,7 +1,6 @@
 const Auth = require("../models/auth");
 const bcrypt = require("bcryptjs");
-const jwt = require("../../../core/jwt");
-const JWTHandler = new jwt();
+const JWTHandler = require("../../../core/jwt");
 const {
   sendVerificationMail,
   sendNewVerificationMail,

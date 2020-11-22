@@ -150,4 +150,6 @@ class JWTHandler {
   }
 }
 
-module.exports = JWTHandler;
+const jwtInstance = new JWTHandler();
+
+module.exports = jwtInstance;
