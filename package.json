@@ -4,8 +4,8 @@
   "description": "Template for node.js REST API (includes auth)",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js",
-    "start": "node index.js",
+    "dev": "nodemon esm index.js",
+    "start": "node esm index.js",
     "format": "prettier \"./**/*.{js,html}\" --write",
     "lint": "eslint \"./**/*.js\"",
     "test": "nyc --reporter=text mocha tests/v1/test --exit"
@@ -39,6 +39,7 @@
     "cors": "^2.8.5",
     "csurf": "^1.11.0",
     "dotenv": "^8.2.0",
+    "ems": "^1.6.1",
     "express": "^4.17.1",
     "express-brute": "^1.0.1",
     "express-brute-memcached": "0.0.1",

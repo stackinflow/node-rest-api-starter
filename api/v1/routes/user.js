@@ -1,20 +1,16 @@
 const router = require("express").Router();
 const { internalServerError } = require("../utils/response");
-const {
-  validateAccessToken,
-  checkAccessToken,
-  checkUserAccess,
-} = require("../middlewares/auth");
-const { getUser, updateUser } = require("../controllers/user");
+const AuthMiddlewares = require("../middlewares/auth");
+const UserControllers = require("../controllers/user");
 
 router.get(
   "/",
-  checkAccessToken,
-  validateAccessToken,
-  checkUserAccess,
+  AuthMiddlewares.checkAccessToken,
+  AuthMiddlewares.validateAccessToken,
+  AuthMiddlewares.checkUserAccess,
   async (req, res) => {
     try {
-      await getUser(req, res);
+      await UserControllers.getUser(req, res);
     } catch (error) {
       internalServerError(res, error);
     }
@@ -23,12 +19,12 @@ router.get(
 
 router.patch(
   "/",
-  checkAccessToken,
-  validateAccessToken,
-  checkUserAccess,
+  AuthMiddlewares.checkAccessToken,
+  AuthMiddlewares.validateAccessToken,
+  AuthMiddlewares.checkUserAccess,
   async (req, res) => {
     try {
-      await updateUser(req, res);
+      await UserControllers.updateUser(req, res);
     } catch (error) {
       internalServerError(res, error);
     }

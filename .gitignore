@@ -7,4 +7,4 @@ keys/privater.pem
 keys/public.pem
 keys/publicr.pem
 
-.nyc_output/
+.nyc_output

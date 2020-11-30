@@ -1,32 +1,6 @@
 const router = require("express").Router();
-const {
-  validateRegisterFields,
-  validateLoginFields,
-  validPassword,
-  validPasswords,
-  validEmail,
-  validResetFields,
-  validateRefreshToken,
-  validateAccessToken,
-  checkRefreshToken,
-  checkAccessToken,
-  checkUserAccess,
-  checkOAuthAccessToken,
-} = require("../middlewares/auth");
-const {
-  registerWithEmail,
-  loginWithEmail,
-  resendAccVerificatinToken,
-  verifyAccByToken,
-  updatePassword,
-  sendPasswordResetCode,
-  resendPasswordResetCode,
-  resetPassword,
-  refreshTokens,
-  deleteAccount,
-  loginWithFB,
-  loginWithGoogle,
-} = require("../controllers/auth");
+const AuthMiddlewares = require("../middlewares/auth");
+const AuthControllers = require("../controllers/auth");
 const { internalServerError } = require("../utils/response");
 
 /* user registration route
@@ -35,12 +9,11 @@ const { internalServerError } = require("../utils/response");
 */
 router.post(
   "/register",
-  //  checkAuthHeader,
-  validateRegisterFields,
-  validPassword,
+  AuthMiddlewares.validateRegisterFields,
+  AuthMiddlewares.validPassword,
   async (req, res) => {
     try {
-      await registerWithEmail(req, res, false);
+      await AuthControllers.registerWithEmail(req, res, false);
     } catch (error) {
       internalServerError(res, error);
     }
@@ -51,20 +24,25 @@ router.post(
     - validate body
     - validate password
 */
-router.post("/login", validateLoginFields, validPassword, async (req, res) => {
-  try {
-    await loginWithEmail(req, res, false);
-  } catch (error) {
-    internalServerError(res, error);
+router.post(
+  "/login",
+  AuthMiddlewares.validateLoginFields,
+  AuthMiddlewares.validPassword,
+  async (req, res) => {
+    try {
+      await AuthControllers.loginWithEmail(req, res, false);
+    } catch (error) {
+      internalServerError(res, error);
+    }
   }
-});
+);
 
 /* 
   user account verification
 */
 router.get("/token/verify", async (req, res) => {
   try {
-    await verifyAccByToken(req, res);
+    await AuthControllers.verifyAccByToken(req, res);
   } catch (error) {
     internalServerError(res, error);
   }
@@ -76,11 +54,11 @@ router.get("/token/verify", async (req, res) => {
 */
 router.post(
   "/token/resend",
-  validateLoginFields,
-  validPassword,
+  AuthMiddlewares.validateLoginFields,
+  AuthMiddlewares.validPassword,
   async (req, res) => {
     try {
-      await resendAccVerificatinToken(req, res);
+      await AuthControllers.resendAccVerificatinToken(req, res);
     } catch (error) {
       internalServerError(res, error);
     }
@@ -94,13 +72,13 @@ router.post(
 */
 router.patch(
   "/password",
-  checkAccessToken,
-  validateAccessToken,
-  validPasswords,
-  checkUserAccess,
+  AuthMiddlewares.checkAccessToken,
+  AuthMiddlewares.validateAccessToken,
+  AuthMiddlewares.validPasswords,
+  AuthMiddlewares.checkUserAccess,
   async (req, res) => {
     try {
-      await updatePassword(req, res);
+      await AuthControllers.updatePassword(req, res);
     } catch (error) {
       internalServerError(res, error);
     }
@@ -110,24 +88,32 @@ router.patch(
 /* sends an otp to email for resetting the password
     - validate email
 */
-router.post("/password/reset/code", validEmail, async (req, res) => {
-  try {
-    await sendPasswordResetCode(req, res);
-  } catch (error) {
-    internalServerError(res, error);
+router.post(
+  "/password/reset/code",
+  AuthMiddlewares.validEmail,
+  async (req, res) => {
+    try {
+      await AuthControllers.sendPasswordResetCode(req, res);
+    } catch (error) {
+      internalServerError(res, error);
+    }
   }
-});
+);
 
 /* sends an otp to email for resetting the password
     - validate email
 */
-router.post("/password/reset/code/resend", validEmail, async (req, res) => {
-  try {
-    await resendPasswordResetCode(req, res);
-  } catch (error) {
-    internalServerError(res, error);
+router.post(
+  "/password/reset/code/resend",
+  AuthMiddlewares.validEmail,
+  async (req, res) => {
+    try {
+      await AuthControllers.resendPasswordResetCode(req, res);
+    } catch (error) {
+      internalServerError(res, error);
+    }
   }
-});
+);
 
 /* resets password
     - validate otp
@@ -135,11 +121,11 @@ router.post("/password/reset/code/resend", validEmail, async (req, res) => {
 */
 router.post(
   "/password/reset",
-  validResetFields,
-  validPassword,
+  AuthMiddlewares.validResetFields,
+  AuthMiddlewares.validPassword,
   async (req, res) => {
     try {
-      await resetPassword(req, res);
+      await AuthControllers.resetPassword(req, res);
     } catch (error) {
       internalServerError(res, error);
     }
@@ -152,11 +138,11 @@ router.post(
 */
 router.get(
   "/token",
-  checkRefreshToken,
-  validateRefreshToken,
+  AuthMiddlewares.checkRefreshToken,
+  AuthMiddlewares.validateRefreshToken,
   async (req, res) => {
     try {
-      await refreshTokens(req, res);
+      await AuthControllers.refreshTokens(req, res);
     } catch (error) {
       internalServerError(res, error);
     }
@@ -167,34 +153,47 @@ router.get(
     - check if access-token is passed
     - validate access-token
 */
-router.delete("/", checkAccessToken, validateAccessToken, async (req, res) => {
-  try {
-    await deleteAccount(req, res);
-  } catch (error) {
-    internalServerError(res, error);
+router.delete(
+  "/",
+  AuthMiddlewares.checkAccessToken,
+  AuthMiddlewares.validateAccessToken,
+  async (req, res) => {
+    try {
+      await AuthControllers.deleteAccount(req, res);
+    } catch (error) {
+      internalServerError(res, error);
+    }
   }
-});
+);
 
 /* login or register with facebook
     - check if oauth access-token is passed
 */
-router.post("/facebook", checkOAuthAccessToken, async (req, res) => {
-  try {
-    await loginWithFB(req, res);
-  } catch (error) {
-    internalServerError(res, error);
+router.post(
+  "/facebook",
+  AuthMiddlewares.checkOAuthAccessToken,
+  async (req, res) => {
+    try {
+      await AuthControllers.loginWithFB(req, res);
+    } catch (error) {
+      internalServerError(res, error);
+    }
   }
-});
+);
 
 /* login or register with google
     - check if oauth access-token is passed
 */
-router.post("/google", checkOAuthAccessToken, async (req, res) => {
-  try {
-    await loginWithGoogle(req, res);
-  } catch (error) {
-    internalServerError(res, error);
+router.post(
+  "/google",
+  AuthMiddlewares.checkOAuthAccessToken,
+  async (req, res) => {
+    try {
+      await AuthControllers.loginWithGoogle(req, res);
+    } catch (error) {
+      internalServerError(res, error);
+    }
   }
-});
+);
 
 module.exports = router;
