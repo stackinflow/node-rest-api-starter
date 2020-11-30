@@ -1,0 +1,265 @@
+/auth/register:
+  post:
+    tags:
+      - Auth
+    summary: Creates a new User
+    description: Creates a new user
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                required: true
+                example: user@email.com
+              password:
+                type: string
+                example: Password@123
+    responses:
+      "201":
+        description: User Created successfully.
+      "400":
+        description: Unable to create user.
+      "500":
+        description: Internal Server Error
+/auth/login:
+  post:
+    tags:
+      - Auth
+    summary: Login a user
+    description: Login a user using email and password.
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                required: true
+                example: user@email.com
+              password:
+                type: string
+                example: Password@123
+    responses:
+      "200":
+        description: Logged In Successfully.
+      "400":
+        description: Unable to Login.
+      "500":
+        description: Internal Server Error
+/auth/token/verify:
+  get:
+    tags:
+      - Auth
+    summary: Verifies a given token for a new user
+    description: Verifies a token for a new user
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    parameters:
+      - in: query
+        name: t
+        schema:
+          type: string
+        description: Access token
+    responses:
+      "200":
+        description: Token Verified successfully.
+      "400":
+        description: Failed to verify the token.
+      "500":
+        description: Internal Server Error
+/auth/token/resend:
+  post:
+    tags:
+      - Auth
+    summary: Resend Token
+    description: Resend Token for a new user
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                required: true
+                example: user@email.com
+              password:
+                type: string
+                example: Password@123
+    responses:
+      "200":
+        description: Token Resent Successfully.
+      "400":
+        description: Unable to Resend token.
+      "401":
+        description: Incorrect Password.
+      "500":
+        description: Internal Server Error
+/auth/password:
+  patch:
+    tags:
+      - Auth
+    summary: Change Password
+    description: Change password using old password
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              oldPassword:
+                type: string
+                required: true
+                example: Password@123
+              newPassword:
+                type: string
+                example: Password@124
+    responses:
+      "200":
+        description: Password Changed Successfully.
+      "400":
+        description: Bad Request.
+      "403":
+        description: Password Change Failed Try Again later
+      "500":
+        description: Internal Server Error
+    security:
+      - bearerAuth: []
+/auth/password/reset/code/resend:
+  post:
+    tags:
+      - Auth
+    summary: Regenerate code to reset password
+    description: Regenerate OTP to reset password
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                required: true
+                example: user@email.com
+    responses:
+      "200":
+        description: OTP Sent successfully to your email.
+      "400":
+        description: Failed, User doesn't exist.
+      "500":
+        description: Internal Server Error
+/auth/password/reset/code:
+  post:
+    tags:
+      - Auth
+    summary: Generate code to reset password
+    description: Generate OTP to reset password
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                required: true
+                example: user@email.com
+    responses:
+      "200":
+        description: OTP Sent successfully to your email.
+      "400":
+        description: Failed, User doesn't exist.
+      "500":
+        description: Internal Server Error
+/auth/password/reset:
+  post:
+    tags:
+      - Auth
+    summary: Reset password using OTP
+    description: Reset password of a user using OTP.
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                required: true
+                example: user@email.com
+              password:
+                type: string
+                required: true
+                example: password@123
+              otp:
+                type: integer
+                required: true
+    responses:
+      "200":
+        description: Password Reset successfully.
+      "400":
+        description: Failed, Check the error message for details.
+      "500":
+        description: Internal Server Error
+/auth:
+  delete:
+    tags:
+      - Auth
+    summary: Delete a user permanently
+    description: Deletes a user permanently.
+    consumes:
+      - application/json
+    produces:
+      - application/json
+    responses:
+      "200":
+        description: Deleted Successfully.
+      "400":
+        description: Bad Request.
+      "403":
+        description: Failed to delete user
+      "500":
+        description: Internal Server Error
+    security:
+      - bearerAuth: []

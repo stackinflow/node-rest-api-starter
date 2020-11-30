@@ -1,0 +1,292 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Rest API starter
+  description: A template to avoid rewriting all the basic authentication code for REST API's built with Express.js, MongoDB.
+schemes:
+  - http
+  - https
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+tags:
+  - name: Auth
+    description: Authentication and authorization operations
+    $ref: "api/v1/auths.yaml"
+  - name: Admin Auth
+    description: Authentication for Admin
+  - name: User
+    description: Routes related to End User
+paths:
+  # /auth:
+  #   $ref: "api/v1/auths.yaml"
+  /admin/auth/register:
+    post:
+      tags:
+        - Admin Auth
+      summary: Creates a new Admin account
+      description: Creates a new Admin account
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  required: true
+                  example: user@email.com
+                password:
+                  type: string
+                  example: Password@123
+      responses:
+        "201":
+          description: Admin user Created successfully.
+        "400":
+          description: Unable to create Admin user.
+        "500":
+          description: Internal Server Error
+  /admin/auth/login:
+    post:
+      tags:
+        - Admin Auth
+      summary: Login as an Admin
+      description: Login as an admin using email and password.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  required: true
+                  example: user@email.com
+                password:
+                  type: string
+                  example: Password@123
+      responses:
+        "200":
+          description: Logged In Successfully.
+        "400":
+          description: Unable to Login.
+        "500":
+          description: Internal Server Error
+  /admin/auth/users:
+    get:
+      tags:
+        - Admin Auth
+      summary: Get a list of all the users
+      description: Get a list of all the users registered in this app.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Users Fetched successfully.
+        "403":
+          description: Failed, Forbidden to fetch user
+        "500":
+          description: Internal Server Error
+      security:
+        - bearerAuth: []
+  /admin/auth/admins:
+    patch:
+      tags:
+        - Admin Auth
+      summary: Get a list of all the admins.
+      description: Get a list of all the admins registered in the app.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Admins Fetched successfully.
+        "403":
+          description: Failed, Forbidden to fetch admins.
+        "500":
+          description: Internal Server Error
+      security:
+        - bearerAuth: []
+  /admin/auth/user/enable:
+    get:
+      tags:
+        - Admin Auth
+      summary: Enable an admin account.
+      description: Enable an admin account using access token.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Account enabled successfully.
+        "403":
+          description: Failed, Forbidden to enable user account.
+        "500":
+          description: Internal Server Error
+      security:
+        - bearerAuth: []
+  /admin/auth/user/disable:
+    get:
+      tags:
+        - Admin Auth
+      summary: Disable an admin account.
+      description: Disable an admin account using access token.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: Account disabled successfully.
+        "403":
+          description: Failed, Forbidden to disable user account.
+        "500":
+          description: Internal Server Error
+      security:
+        - bearerAuth: []
+
+  /user:
+    get:
+      tags:
+        - User
+      summary: Get all the details of a user
+      description: Get a list of all the details of a user by providing access token.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        "200":
+          description: User Data Fetched successfully.
+        "403":
+          description: Failed, Forbidden to fetch user data.
+        "500":
+          description: Internal Server Error
+      security:
+        - bearerAuth: []
+    patch:
+      tags:
+        - User
+      summary: Edit User Details
+      description: Edit data related to the user.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  required: true
+                  example: Shubham
+                lastName:
+                  type: string
+                  example: Raj
+                gender:
+                  type: string
+                  example: Male
+                age:
+                  type: integer
+                  example: 20
+      responses:
+        "200":
+          description: User Data Fetched successfully.
+        "403":
+          description: Failed, Forbidden to fetch user data.
+        "500":
+          description: Internal Server Error
+      security:
+        - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        userId:
+          type: string
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        gender:
+          type: string
+        age:
+          type: integer
+        knownLanguages:
+          type: string
+        profession:
+          type: string
+        location:
+          type: string
+        latitude:
+          type: integer
+        longitude:
+          type: integer
+        photoUrl:
+          type: string
+        symptoms:
+          type: string
+      required:
+        - userId
+        - email
+    Auth:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        admin:
+          type: boolean
+        adminVerified:
+          type: boolean
+        disabled:
+          type: boolean
+        emailVerified:
+          type: boolean
+        provider:
+          type: boolean
+        oauthToken:
+          type: string
+      required:
+        - email
+    Token:
+      type: object
+      properties:
+        _userId:
+          type: string
+        token:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - _userId
+        - token
+        - createdAt
