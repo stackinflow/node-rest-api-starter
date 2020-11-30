@@ -147,9 +147,19 @@ Tests are written using Mocha and Chai
 
 ### CI/CD
 
-Not implemented yet
+Runs Tests on pull request is raised
 
 ## Project setup
+
+Go ahead into the root directory of the repository and follow the below instructions
+
+> Note: Setup scripts and docs are written only for `Ubuntu` based operating system, for other operating systems please refer to respective websites.
+
+For manual setup docs, please refer here,
+
+- [MongoDB](utils/docs/setup_mongo.md)
+- [Node.js](utils/docs/setup_node.md)
+- [Project & keys](utils/docs/setup_project.md)
 
 <!--
 (#installation-of-nodejs)
@@ -157,45 +167,10 @@ Not implemented yet
 
 ## Installation of Node.js
 
-First thing we need to do is to install **nodejs**, you can find the installation steps and archives from the official website [here](https://nodejs.org/en/). It is recommended to use the LTS version of node to avoid any kind of interruptions.
-
-#### Install specific version using CURL
-
-1. Install `curl`
+Execute the below command in terminal
 
 ```bash
-sudo apt update
-sudo apt upgrade
-sudo apt install curl
-```
-
-2. Get `nodejs` PPA
-   Switch to root directory
-
-```bash
-cd ~
-```
-
-```bash
-curl -sL https://deb.nodesource.com/setup_12.x -o nodesource_setup.sh
-```
-
-3. Run the script under sudo:
-
-```bash
-sudo bash nodesource_setup.sh
-```
-
-4. Install nodejs
-
-```bash
-sudo apt install nodejs
-```
-
-5. In order for some npm packages to work (those that require compiling code from source, for example), you will need to install the build-essential package:
-
-```bash
-sudo apt install build-essential
+bash utils/bash_scripts/setup_node.sh
 ```
 
 <!--
@@ -204,86 +179,10 @@ sudo apt install build-essential
 
 ## MongoDB installation and configuration
 
-In case you face any issues, refer official [docs](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/)
-
-#### Installing mongodb v4.4
-
-a. Import the public key used by the package management system.
+Execute the below command in terminal
 
 ```bash
-wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
-```
-
-b. Create a list file for MongoDB
-
-```bash
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
-```
-
-c. Reload local package database.
-
-```bash
-sudo apt-get update
-```
-
-d. Install the MongoDB packages
-
-```bash
-sudo apt-get install -y mongodb-org
-```
-
-e. Optional. Although you can specify any available version of MongoDB
-
-```bash
-echo "mongodb-org hold" | sudo dpkg --set-selections
-echo "mongodb-org-server hold" | sudo dpkg --set-selections
-echo "mongodb-org-shell hold" | sudo dpkg --set-selections
-echo "mongodb-org-mongos hold" | sudo dpkg --set-selections
-echo "mongodb-org-tools hold" | sudo dpkg --set-selections
-```
-
-#### Configure mongodb
-
-a. Create a directory to store data
-
-```bash
-sudo mkdir /data
-sudo mkdir /data/db
-```
-
-b. Grant required permissions
-
-```bash
-sudo chown -R `id -un` /data/db
-```
-
-#### Start mongodb services
-
-```bash
-# start mongodb service
-sudo service mongod start
-# Check status of the service
-sudo service mongod status
-```
-
-#### Initialize MongoDB
-
-```bash
-sudo mongod
-```
-
-The above command will start a `MongoDB` instance running on your local machine. I will pick a port to run the database, possibly it will be `27017`, so your db will be hosted at
-
-```js
-mongodb://localhost:27017/
-```
-
-#### MongoDB shell
-
-Here you can execute your db queries. Initialize the shell by following command
-
-```bash
-mongo
+bash utils/bash_scripts/setup_mongo.sh
 ```
 
 <!--
@@ -292,71 +191,13 @@ mongo
 
 ## Setup and run the project
 
-1. Install the required dependencies by the following command
+Execute the below command in terminal
 
 ```bash
-npm install
+bash utils/bash_scripts/setup_project.sh
 ```
 
-2. Setup public & private keys for `Access` and `Refresh` tokens
-   Open your terminal and type the below commands to create secure private key and extracting public key from the private key. We're using a 512 bit long key, as the length increases the size of jwt also increases.
-
-Creating private key for access token
-
-```bash
-openssl genrsa -out private.pem 512
-```
-
-Expected output:
-
-```
-Generating RSA private key, 512 bit long modulus (2 primes)
-....................................................+++++
-.+++++
-```
-
-Extracting public key for access token
-
-```bash
-openssl rsa -in private.pem -outform PEM -pubout -out public.pem
-```
-
-Expected output:
-
-```
-writing RSA key
-```
-
-Creating private key for refresh token
-
-```bash
-openssl genrsa -out privater.pem 512
-```
-
-Expected output:
-
-```
-Generating RSA private key, 512 bit long modulus (2 primes)
-....................................................+++++
-.+++++
-```
-
-Extracting public key for refresh token
-
-```bash
-openssl rsa -in privater.pem -outform PEM -pubout -out publicr.pem
-```
-
-Expected output:
-
-```
-writing RSA key
-```
-
-and place these 4 files inside `keys` directory in root of the project
-For more info on openssl, click [here](https://www.openssl.org/)
-
-3. Setup environment variables
+1. Setup environment variables
    Rename the `.env.example` as `.env` and fill up your details there.
 
 **SendGrid**
@@ -364,7 +205,7 @@ Create an account at SendGrid [SendGrid](https://sendgrid.com/).
 Create a new API Key [here](https://app.sendgrid.com/settings/api_keys)
 Verify a sender email and use that email in the `.env` file, to verify click [here](https://app.sendgrid.com/settings/sender_auth/senders/new)
 
-4. Place your application's Database credentials and config inside the `.env`.
+2. Place your application's Database credentials and config inside the `.env`.
 
 Refer below config as example:
 
@@ -384,11 +225,11 @@ const dev = {
 };
 ```
 
-5. Install [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) and [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) in VS Code
+3. Install [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) and [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) in VS Code
 
-6. Google and Facebook client details, [check out this article for generating client details](https://medium.com/@fayaz07/social-authentication-facebook-and-google-in-flutter-without-firebase-e3ca289ed50c)
+4. Google and Facebook client details, [check out this article for generating client details](https://medium.com/@fayaz07/social-authentication-facebook-and-google-in-flutter-without-firebase-e3ca289ed50c)
 
-7. Run the project with nodemon
+5. Run the project with nodemon
 
 ```bash
 npm run dev
@@ -400,7 +241,7 @@ or Run as normal project
 npm start
 ```
 
-7. Run tests
+6. Run tests
 
 ```bash
 npm test

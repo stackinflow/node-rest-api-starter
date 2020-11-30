@@ -4,23 +4,23 @@
   "description": "Template for node.js REST API (includes auth)",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon esm index.js",
-    "start": "node esm index.js",
-    "format": "prettier \"./**/*.{js,html}\" --write",
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "format": "prettier \"./**/*.{js,html,json}\" --write",
     "lint": "eslint \"./**/*.js\"",
     "test": "nyc --reporter=text mocha tests/v1/test --exit"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fayaz07/node-rest-api-auth.git"
+    "url": "git+https://github.com/fayaz07/node-rest-api-starter.git"
   },
   "keywords": [],
   "author": "Mohammad Fayaz(@fayaz07)",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/fayaz07/node-rest-api-auth/issues"
+    "url": "https://github.com/fayaz07/node-rest-api-starter/issues"
   },
-  "homepage": "https://github.com/fayaz07/node-rest-api-auth#readme",
+  "homepage": "https://github.com/fayaz07/node-rest-api-starter#readme",
   "devDependencies": {
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
@@ -39,7 +39,6 @@
     "cors": "^2.8.5",
     "csurf": "^1.11.0",
     "dotenv": "^8.2.0",
-    "ems": "^1.6.1",
     "express": "^4.17.1",
     "express-brute": "^1.0.1",
     "express-brute-memcached": "0.0.1",
