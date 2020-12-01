@@ -6,7 +6,7 @@ const cors = require("cors");
 const path = require("path");
 const YAML = require("yamljs");
 const swaggerUi = require("swagger-ui-express");
-const swaggerDocument = YAML.load("./swagger.yaml");
+const swaggerDocument = YAML.load("./utils/swagger/swagger.yaml");
 
 // importing user routes
 const authRoute = require("../api/v1/routes/auth");
@@ -69,11 +69,7 @@ function _setRoutes(app) {
   // auth middleware
   app.use("/api/v1/admin/auth", adminAuthRoute);
 
-  app.use(
-    "/api/v1/explorer",
-    swaggerUi.serve,
-    swaggerUi.setup(swaggerDocument)
-  );
+  app.use("/explorer", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
   _handleInvalidRoutes(app);
 }

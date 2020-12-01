@@ -1,13 +1,7 @@
 const Auth = require("../../api/v1/models/auth");
 const Token = require("../../api/v1/models/token");
 const User = require("../../api/v1/models/user");
-const {
-  ACCESS_TOKEN,
-  REFRESH_TOKEN,
-  AUTHORIZATION_HEADER,
-  BEARER,
-  BASIC,
-} = require("../../api/v1/utils/constants").headers;
+const Headers = require("../../api/v1/utils/constants").headers;
 
 var name = "Mohammad Fayaz";
 
@@ -50,8 +44,8 @@ module.exports = (chai, server) => {
         .send(data)
         .end((err, response) => {
           response.should.not.have.status(200);
-          response.should.not.have.header(ACCESS_TOKEN);
-          response.should.not.have.header(REFRESH_TOKEN);
+          response.should.not.have.header(Headers.ACCESS_TOKEN);
+          response.should.not.have.header(Headers.REFRESH_TOKEN);
           done();
         });
     });
@@ -161,10 +155,10 @@ module.exports = (chai, server) => {
         .send(data)
         .end((err, response) => {
           response.should.have.status(200);
-          response.should.have.header(ACCESS_TOKEN);
-          response.should.have.header(REFRESH_TOKEN);
-          accessToken = response.header[ACCESS_TOKEN];
-          refreshToken = response.header[REFRESH_TOKEN];
+          response.should.have.header(Headers.ACCESS_TOKEN);
+          response.should.have.header(Headers.REFRESH_TOKEN);
+          accessToken = response.header[Headers.ACCESS_TOKEN];
+          refreshToken = response.header[Headers.REFRESH_TOKEN];
           done();
         });
     });
@@ -206,7 +200,7 @@ module.exports = (chai, server) => {
       chai
         .request(server)
         .patch(baseUrl + "/password")
-        .set(AUTHORIZATION_HEADER, BASIC + " " + accessToken)
+        .set(Headers.AUTHORIZATION_HEADER, Headers.BASIC + " " + accessToken)
         .send({ oldPassword: data.password, newPassword: data.password + "a" })
         .end((err, response) => {
           response.should.not.have.status(200);
@@ -218,7 +212,7 @@ module.exports = (chai, server) => {
       chai
         .request(server)
         .patch(baseUrl + "/password")
-        .set(AUTHORIZATION_HEADER, BEARER + " " + accessToken)
+        .set(Headers.AUTHORIZATION_HEADER, Headers.BEARER + " " + accessToken)
         .send({ oldPassword: data.password, newPassword: data.password + "a" })
         .end((err, response) => {
           response.should.have.status(200);
@@ -234,8 +228,8 @@ module.exports = (chai, server) => {
         .send(data)
         .end((err, response) => {
           response.should.not.have.status(200);
-          response.should.not.have.header(ACCESS_TOKEN);
-          response.should.not.have.header(REFRESH_TOKEN);
+          response.should.not.have.header(Headers.ACCESS_TOKEN);
+          response.should.not.have.header(Headers.REFRESH_TOKEN);
           done();
         });
     });
@@ -248,8 +242,8 @@ module.exports = (chai, server) => {
         .send({ email: data.email, password: data.password + "a" })
         .end((err, response) => {
           response.should.have.status(200);
-          response.should.have.header(ACCESS_TOKEN);
-          response.should.have.header(REFRESH_TOKEN);
+          response.should.have.header(Headers.ACCESS_TOKEN);
+          response.should.have.header(Headers.REFRESH_TOKEN);
           done();
         });
     });
@@ -328,11 +322,11 @@ module.exports = (chai, server) => {
         .send(data)
         .end((err, response) => {
           response.should.have.status(200);
-          response.should.have.header(ACCESS_TOKEN);
-          response.should.have.header(REFRESH_TOKEN);
+          response.should.have.header(Headers.ACCESS_TOKEN);
+          response.should.have.header(Headers.REFRESH_TOKEN);
 
-          accessToken = response.header[ACCESS_TOKEN];
-          refreshToken = response.header[REFRESH_TOKEN];
+          accessToken = response.header[Headers.ACCESS_TOKEN];
+          refreshToken = response.header[Headers.REFRESH_TOKEN];
           done();
         });
     });
@@ -342,11 +336,11 @@ module.exports = (chai, server) => {
         .request(server)
         .get(baseUrl + "/token")
         .set("Content-Type", "application/json")
-        .set(AUTHORIZATION_HEADER, BEARER + " " + refreshToken)
+        .set(Headers.AUTHORIZATION_HEADER, Headers.BEARER + " " + refreshToken)
         .end((err, response) => {
           response.should.not.have.status(200);
-          response.should.not.have.header(ACCESS_TOKEN);
-          response.should.not.have.header(REFRESH_TOKEN);
+          response.should.not.have.header(Headers.ACCESS_TOKEN);
+          response.should.not.have.header(Headers.REFRESH_TOKEN);
           done();
         });
     });
@@ -356,13 +350,13 @@ module.exports = (chai, server) => {
         .request(server)
         .get(baseUrl + "/token")
         .set("Content-Type", "application/json")
-        .set(AUTHORIZATION_HEADER, BASIC + " " + refreshToken)
+        .set(Headers.AUTHORIZATION_HEADER, Headers.BASIC + " " + refreshToken)
         .end((err, response) => {
           response.should.have.status(200);
-          response.should.have.header(ACCESS_TOKEN);
-          response.should.have.header(REFRESH_TOKEN);
+          response.should.have.header(Headers.ACCESS_TOKEN);
+          response.should.have.header(Headers.REFRESH_TOKEN);
 
-          accessToken = response.header[ACCESS_TOKEN];
+          accessToken = response.header[Headers.ACCESS_TOKEN];
           done();
         });
     });
@@ -372,7 +366,7 @@ module.exports = (chai, server) => {
         .request(server)
         .delete(baseUrl)
         .set("Content-Type", "application/json")
-        .set(AUTHORIZATION_HEADER, BEARER + " " + accessToken)
+        .set(Headers.AUTHORIZATION_HEADER, Headers.BEARER + " " + accessToken)
         .end((err, response) => {
           response.should.have.status(200);
           done();

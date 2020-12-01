@@ -9,27 +9,8 @@ const {
   verifyAccessToken,
   getAuthUserWithProjection,
 } = require("../controllers/auth");
-const {
-  EXPIRED,
-  AUTHORIZATION_HEADER,
-  BASIC,
-  BEARER,
-} = require("../utils/constants").headers;
-const {
-  FAILED,
-  INVALID_PASSWORD,
-  INVALID_TOKEN,
-  INVALID_AUTH_TYPE,
-  SESSION_EXPIRED,
-  ACCESS_TOKEN_EXPIRED,
-  ACC_DISABLED,
-  OPERATION_NOT_PERMITTED,
-  ACC_VERIFICATION_PENDING_BY_TEAM,
-  PASSWORD_DOES_NOT_CONTAIN_NUMBER,
-  PASSWORD_DOES_NOT_CONTAIN_LOWERCASE,
-  PASSWORD_DOES_NOT_CONTAIN_UPPERCASE,
-  PASSWORD_DOES_NOT_CONTAIN_SPECIAL_CHAR,
-} = require("../utils/constants").errors;
+const Headers = require("../utils/constants").headers;
+const Errors = require("../utils/constants").errors;
 
 /* register fields validation middleware
     (using register fields validation to login and
@@ -40,7 +21,7 @@ module.exports.validateRegisterFields = (req, res, next) => {
   const { error } = registerValidation(req.body);
   if (error)
     return res.status(400).json({
-      status: FAILED,
+      status: Errors.FAILED,
       message: error.details[0].message,
       error: error,
     });
@@ -57,7 +38,7 @@ module.exports.validateLoginFields = (req, res, next) => {
   const { error } = loginValidation(req.body);
   if (error)
     return res.status(400).json({
-      status: FAILED,
+      status: Errors.FAILED,
       message: error.details[0].message,
       error: error,
     });
@@ -76,8 +57,8 @@ module.exports.validPassword = (req, res, next) => {
   if (valid === true) next();
   else
     return res.status(400).json({
-      status: FAILED,
-      message: INVALID_PASSWORD,
+      status: Errors.FAILED,
+      message: Errors.INVALID_PASSWORD,
       error: valid,
     });
 };
@@ -95,14 +76,14 @@ module.exports.validPasswords = (req, res, next) => {
     if (valid2 === true) next();
     else
       return res.status(400).json({
-        status: FAILED,
-        message: INVALID_PASSWORD,
+        status: Errors.FAILED,
+        message: Errors.INVALID_PASSWORD,
         error: valid,
       });
   } else
     return res.status(400).json({
-      status: FAILED,
-      message: INVALID_PASSWORD,
+      status: Errors.FAILED,
+      message: Errors.INVALID_PASSWORD,
       error: valid,
     });
 };
@@ -114,7 +95,7 @@ module.exports.validEmail = (req, res, next) => {
   const { error } = emailValidation(req.body);
   if (error) {
     return res.status(400).json({
-      status: FAILED,
+      status: Errors.FAILED,
       message: error.details[0].message,
       error: error,
     });
@@ -129,7 +110,7 @@ module.exports.validResetFields = (req, res, next) => {
   const { error } = resetPasswordValidation(req.body);
   if (error) {
     return res.status(400).json({
-      status: FAILED,
+      status: Errors.FAILED,
       message: error.details[0].message,
       error: error,
     });
@@ -142,26 +123,29 @@ module.exports.validResetFields = (req, res, next) => {
  they won't verify if they are valid or expired
 */
 module.exports.checkRefreshToken = (req, res, next) => {
-  if (!req.header(AUTHORIZATION_HEADER))
+  if (!req.header(Headers.AUTHORIZATION_HEADER))
     return res.status(400).json({
-      status: FAILED,
-      message: INVALID_TOKEN,
+      status: Errors.FAILED,
+      message: Errors.INVALID_TOKEN,
     });
 
-  const authHeader = req.header(AUTHORIZATION_HEADER).toString().split(" ");
-  if (authHeader != null && authHeader[0] === BASIC) {
+  const authHeader = req
+    .header(Headers.AUTHORIZATION_HEADER)
+    .toString()
+    .split(" ");
+  if (authHeader != null && authHeader[0] === Headers.BASIC) {
     if (authHeader[1]) {
       req.refreshToken = authHeader[1];
       next();
     } else
       return res.status(400).json({
-        status: FAILED,
-        message: INVALID_TOKEN,
+        status: Errors.FAILED,
+        message: Errors.INVALID_TOKEN,
       });
   } else
     return res.status(403).json({
-      status: FAILED,
-      message: INVALID_AUTH_TYPE,
+      status: Errors.FAILED,
+      message: Errors.INVALID_AUTH_TYPE,
     });
 };
 
@@ -170,26 +154,29 @@ module.exports.checkRefreshToken = (req, res, next) => {
  they won't verify if they are valid or expired
 */
 module.exports.checkAccessToken = (req, res, next) => {
-  if (!req.header(AUTHORIZATION_HEADER))
+  if (!req.header(Headers.AUTHORIZATION_HEADER))
     return res.status(400).json({
-      status: FAILED,
-      message: INVALID_TOKEN,
+      status: Errors.FAILED,
+      message: Errors.INVALID_TOKEN,
     });
 
-  const authHeader = req.header(AUTHORIZATION_HEADER).toString().split(" ");
-  if (authHeader != null && authHeader[0] === BEARER) {
+  const authHeader = req
+    .header(Headers.AUTHORIZATION_HEADER)
+    .toString()
+    .split(" ");
+  if (authHeader != null && authHeader[0] === Headers.BEARER) {
     if (authHeader[1]) {
       req.accessToken = authHeader[1];
       next();
     } else
       return res.status(400).json({
-        status: FAILED,
-        message: INVALID_TOKEN,
+        status: Errors.FAILED,
+        message: Errors.INVALID_TOKEN,
       });
   } else
     return res.status(403).json({
-      status: FAILED,
-      message: INVALID_AUTH_TYPE,
+      status: Errors.FAILED,
+      message: Errors.INVALID_AUTH_TYPE,
     });
 };
 
@@ -203,15 +190,15 @@ module.exports.validateRefreshToken = (req, res, next) => {
   if (verificationResult.valid) {
     req.tokenData = verificationResult.data;
     next();
-  } else if (verificationResult.error.toString().includes(EXPIRED)) {
+  } else if (verificationResult.error.toString().includes(Headers.EXPIRED)) {
     return res.status(401).json({
-      status: FAILED,
-      message: SESSION_EXPIRED,
+      status: Errors.FAILED,
+      message: Errors.SESSION_EXPIRED,
     });
   } else {
     return res.status(400).json({
-      status: FAILED,
-      message: INVALID_TOKEN,
+      status: Errors.FAILED,
+      message: Errors.INVALID_TOKEN,
     });
   }
 };
@@ -226,15 +213,15 @@ module.exports.validateAccessToken = (req, res, next) => {
   if (verificationResult.valid) {
     req.tokenData = verificationResult.data;
     next();
-  } else if (verificationResult.error.toString().includes(EXPIRED)) {
+  } else if (verificationResult.error.toString().includes(Headers.EXPIRED)) {
     return res.status(401).json({
-      status: FAILED,
-      message: ACCESS_TOKEN_EXPIRED,
+      status: Errors.FAILED,
+      message: Errors.ACCESS_TOKEN_EXPIRED,
     });
   } else {
     return res.status(400).json({
-      status: FAILED,
-      message: INVALID_TOKEN,
+      status: Errors.FAILED,
+      message: Errors.INVALID_TOKEN,
     });
   }
 };
@@ -249,14 +236,14 @@ module.exports.checkUserAccess = async (req, res, next) => {
   });
   if (!authUser)
     return res.status(400).json({
-      status: FAILED,
-      message: INVALID_TOKEN,
+      status: Errors.FAILED,
+      message: Errors.INVALID_TOKEN,
     });
 
   if (authUser.disabled)
     return res.status(403).json({
-      status: FAILED,
-      message: ACC_DISABLED,
+      status: Errors.FAILED,
+      message: Errors.ACC_DISABLED,
     });
   req.authUser = authUser;
   next();
@@ -274,20 +261,20 @@ module.exports.checkAdminAccess = async (req, res, next) => {
   });
   if (!authUser || !authUser.admin)
     return res.status(403).json({
-      status: FAILED,
-      message: OPERATION_NOT_PERMITTED,
+      status: Errors.FAILED,
+      message: Errors.OPERATION_NOT_PERMITTED,
     });
 
   if (!authUser.adminVerified)
     return res.status(403).json({
-      status: FAILED,
-      message: ACC_VERIFICATION_PENDING_BY_TEAM,
+      status: Errors.FAILED,
+      message: Errors.ACC_VERIFICATION_PENDING_BY_TEAM,
     });
 
   if (authUser.disabled)
     return res.status(403).json({
-      status: FAILED,
-      message: ACC_DISABLED,
+      status: Errors.FAILED,
+      message: Errors.ACC_DISABLED,
     });
 
   req.authUser = authUser;
@@ -300,8 +287,8 @@ module.exports.checkAdminAccess = async (req, res, next) => {
 module.exports.checkOAuthAccessToken = async (req, res, next) => {
   if (!req.body.accessToken || req.body.accessToken.toString().length < 64)
     return res.status(400).json({
-      status: FAILED,
-      message: INVALID_TOKEN,
+      status: Errors.FAILED,
+      message: Errors.INVALID_TOKEN,
     });
   next();
 };
@@ -313,25 +300,25 @@ function checkPassword(pwd) {
   // at least one numeric value
   var re = /[0-9]/;
   if (!re.test(pwd)) {
-    return PASSWORD_DOES_NOT_CONTAIN_NUMBER;
+    return Errors.PASSWORD_DOES_NOT_CONTAIN_NUMBER;
   }
 
   // at least one lowercase letter
   re = /[a-z]/;
   if (!re.test(pwd)) {
-    return PASSWORD_DOES_NOT_CONTAIN_LOWERCASE;
+    return Errors.PASSWORD_DOES_NOT_CONTAIN_LOWERCASE;
   }
 
   // at least one uppercase letter
   re = /[A-Z]/;
   if (!re.test(pwd)) {
-    return PASSWORD_DOES_NOT_CONTAIN_UPPERCASE;
+    return Errors.PASSWORD_DOES_NOT_CONTAIN_UPPERCASE;
   }
 
   // at least one special character
   re = /[`!@#%$&^*()]+/;
   if (!re.test(pwd)) {
-    return PASSWORD_DOES_NOT_CONTAIN_SPECIAL_CHAR;
+    return Errors.PASSWORD_DOES_NOT_CONTAIN_SPECIAL_CHAR;
   }
   return true;
 }

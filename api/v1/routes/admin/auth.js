@@ -1,19 +1,6 @@
 const router = require("express").Router();
-const {
-  validateRegisterFields,
-  validPassword,
-  checkAccessToken,
-  validateAccessToken,
-  checkAdminAccess,
-} = require("../../middlewares/auth");
-const {
-  registerWithEmail,
-  loginWithEmail,
-  getAllUsers,
-  getAllAdmins,
-  enableUser,
-  disableUser,
-} = require("../../controllers/auth");
+const AuthMiddlewares = require("../../middlewares/auth");
+const AuthControllers = require("../../controllers/auth");
 const { internalServerError } = require("../../utils/response");
 
 /* admin register route
@@ -22,11 +9,11 @@ const { internalServerError } = require("../../utils/response");
 */
 router.post(
   "/register",
-  validateRegisterFields,
-  validPassword,
+  AuthMiddlewares.validateRegisterFields,
+  AuthMiddlewares.validPassword,
   async (req, res) => {
     try {
-      await registerWithEmail(req, res, true);
+      await AuthControllers.registerWithEmail(req, res, true);
     } catch (error) {
       internalServerError(res, error);
     }
@@ -39,11 +26,11 @@ router.post(
 */
 router.post(
   "/login",
-  validateRegisterFields,
-  validPassword,
+  AuthMiddlewares.validateRegisterFields,
+  AuthMiddlewares.validPassword,
   async (req, res) => {
     try {
-      await loginWithEmail(req, res, true);
+      await AuthControllers.loginWithEmail(req, res, true);
     } catch (error) {
       internalServerError(res, error);
     }
@@ -56,12 +43,12 @@ router.post(
 */
 router.get(
   "/users",
-  checkAccessToken,
-  validateAccessToken,
-  checkAdminAccess,
+  AuthMiddlewares.checkAccessToken,
+  AuthMiddlewares.validateAccessToken,
+  AuthMiddlewares.checkAdminAccess,
   async (req, res) => {
     try {
-      await getAllUsers(res);
+      await AuthControllers.getAllUsers(res);
     } catch (error) {
       internalServerError(res, error);
     }
@@ -74,12 +61,12 @@ router.get(
 */
 router.get(
   "/admins",
-  checkAccessToken,
-  validateAccessToken,
-  checkAdminAccess,
+  AuthMiddlewares.checkAccessToken,
+  AuthMiddlewares.validateAccessToken,
+  AuthMiddlewares.checkAdminAccess,
   async (req, res) => {
     try {
-      await getAllAdmins(res);
+      await AuthControllers.getAllAdmins(res);
     } catch (error) {
       internalServerError(res, error);
     }
@@ -92,12 +79,12 @@ router.get(
 */
 router.patch(
   "/user/disable",
-  checkAccessToken,
-  validateAccessToken,
-  checkAdminAccess,
+  AuthMiddlewares.checkAccessToken,
+  AuthMiddlewares.validateAccessToken,
+  AuthMiddlewares.checkAdminAccess,
   async (req, res) => {
     try {
-      await disableUser(req, res);
+      await AuthControllers.disableUser(req, res);
     } catch (error) {
       internalServerError(res, error);
     }
@@ -110,12 +97,12 @@ router.patch(
 */
 router.patch(
   "/user/enable",
-  checkAccessToken,
-  validateAccessToken,
-  checkAdminAccess,
+  AuthMiddlewares.checkAccessToken,
+  AuthMiddlewares.validateAccessToken,
+  AuthMiddlewares.checkAdminAccess,
   async (req, res) => {
     try {
-      await enableUser(req, res);
+      await AuthControllers.enableUser(req, res);
     } catch (error) {
       internalServerError(res, error);
     }

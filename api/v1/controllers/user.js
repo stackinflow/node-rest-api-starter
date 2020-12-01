@@ -1,14 +1,6 @@
 const User = require("../models/user");
-const {
-  FAILED,
-  USER_NOT_EXISTS,
-  USER_DATA_UPDATE_FAILED,
-} = require("../utils/constants").errors;
-const {
-  SUCCESS,
-  FETCHED_USER_DATA,
-  UPDATED_USER_DATA,
-} = require("../utils/constants").successMessages;
+const Errors = require("../utils/constants").errors;
+const Success = require("../utils/constants").successMessages;
 const crypto = require("crypto");
 
 module.exports.createUser = async (userData) => {
@@ -38,13 +30,13 @@ module.exports.getUser = async (req, res) => {
     (error, user) => {
       if (error) {
         return res.status(403).json({
-          status: FAILED,
-          message: USER_NOT_EXISTS,
+          status: Errors.FAILED,
+          message: Errors.USER_NOT_EXISTS,
         });
       }
       return res.status(200).json({
-        status: SUCCESS,
-        message: FETCHED_USER_DATA,
+        status: Success.SUCCESS,
+        message: Success.FETCHED_USER_DATA,
         user: user,
       });
     }
@@ -61,12 +53,12 @@ module.exports.updateUser = async (req, res) => {
   await user.save((error, updated) => {
     if (error)
       return res.status(403).json({
-        status: FAILED,
-        message: USER_DATA_UPDATE_FAILED,
+        status: Errors.FAILED,
+        message: Errors.USER_DATA_UPDATE_FAILED,
       });
     return res.status(200).json({
-      status: SUCCESS,
-      message: UPDATED_USER_DATA,
+      status: Success.SUCCESS,
+      message: Success.UPDATED_USER_DATA,
       user: updated,
     });
   });

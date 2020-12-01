@@ -1,89 +1,13 @@
 const Auth = require("../models/auth");
 const bcrypt = require("bcryptjs");
 const JWTHandler = require("../../../core/jwt");
-const {
-  sendVerificationMail,
-  sendNewVerificationMail,
-  verifyUser,
-  sendOTPForPasswordReset,
-  resendOTPForPasswordReset,
-  verifyOTP,
-  deleteOldToken,
-} = require("./token");
-const {
-  ACCESS_TOKEN,
-  REFRESH_TOKEN,
-  FB_OAUTH_URL,
-  GOOGLE_OAUTH_URL,
-  EMAIL_KEY,
-  FACEBOOK_KEY,
-  GOOGLE_KEY,
-  FB_OAUTH_REFRESH,
-  EXPIRE,
-} = require("../utils/constants").headers;
-const {
-  EMAIL_IN_USE,
-  FAILED,
-  REGISTER_FAILED,
-  INVALID_EMAIL_PASSWORD,
-  INCORRECT_PASSWORD,
-  INVALID_TOKEN,
-  INVALID_EXPIRED_VERIFY_TOKEN,
-  ACCOUNT_ALREADY_VERIFIED,
-  USER_NOT_EXISTS,
-  OLD_PASSWORD_IS_SAME,
-  PASSWORD_CHANGE_FAILED,
-  TRY_LATER,
-  INVALID_EXPIRED_OTP,
-  TOKEN_REFRESH_FAILED,
-  INVALID_MALFORMED_REFRESH_TOKEN,
-  ACC_DELETE_FAILED,
-  FETCH_USERS_FAILED,
-  FETCH_ADMINS_FAILED,
-  FACEBOOK_LOGIN_FAILED,
-  FACEBOOK_GOOGLE_FAILED,
-  USER_ACCESS_ALREADY,
-  DISABLED,
-  ENABLED,
-  ACCESS_ENABLE_FAILED,
-  ACCESS_DISABLE_FAILED,
-  GOOGLE_REGISTER_FAILED,
-  FB_REGISTER_FAILED,
-  EMAIL_IN_USE_BY_OTHER_PROVIDER,
-  ACCOUNT_NOT_VERIFIED,
-  ACC_DISABLED,
-  LOGIN_NOT_ALLOWED,
-  ACC_UNDER_REVIEW,
-  TOKENS_REFRESHED,
-  SESSION_EXPIRED,
-  OAUTH_LOGIN_FAILED,
-  OAUTH_TOKEN_REFRESH_ERROR,
-  LOGIN_FAILED,
-  OTP_ALREADY_SENT,
-} = require("../utils/constants").errors;
-const {
-  SUCCESS,
-  VERIFY_MAIL_SENT,
-  ACC_VERIFIED,
-  RESENT_VERIFY_EMAIL,
-  PASSWORD_UPDATED,
-  OTP_SENT,
-  OTP_RESENT,
-  PASSWORD_RESET,
-  ACC_DELETED,
-  FETCHED_USERS,
-  FETCHED_ADMINS,
-  ACCESS_ENABLED,
-  ACCESS_DISABLED,
-  LOGIN_SUCCESS,
-} = require("../utils/constants").successMessages;
-const {
-  createUser,
-  deleteUser,
-  fetchNameOfUser,
-} = require("../controllers/user");
+const TokenControllers = require("./token");
+const Headers = require("../utils/constants").headers;
+const Errors = require("../utils/constants").errors;
+const Success = require("../utils/constants").successMessages;
+const UserControllers = require("../controllers/user");
 const { default: Axios } = require("axios");
-const { joinWithCommaSpace, joinWithSpace } = require("../../../core/helpers");
+const Helpers = require("../../../core/helpers");
 
 /* User registration with email   
     - check if email is existing/email being used by another provider
@@ -99,7 +23,9 @@ module.exports.registerWithEmail = async (req, res, registerAsAdmin) => {
   var authUser = await getAuthUserByEmail(req.body.email);
 
   if (authUser)
-    return res.status(409).json({ status: FAILED, message: EMAIL_IN_USE });
+    return res
+      .status(409)
+      .json({ status: Errors.FAILED, message: Errors.EMAIL_IN_USE });
 
   const hashedPassword = await _hashThePassword(req.body.password);
 
@@ -108,7 +34,7 @@ module.exports.registerWithEmail = async (req, res, registerAsAdmin) => {
     email: req.body.email,
     password: hashedPassword,
     admin: registerAsAdmin,
-    provider: EMAIL_KEY,
+    provider: Headers.EMAIL_KEY,
   });
 
   // creating user in database
@@ -116,22 +42,22 @@ module.exports.registerWithEmail = async (req, res, registerAsAdmin) => {
     if (savedUser) {
       savedUser.firstName = req.body.name.toString().split(" ")[0];
       savedUser.lastName = req.body.name.toString().split(" ")[1];
-      await sendVerificationMail(
+      await TokenControllers.sendVerificationMail(
         savedUser._id,
         savedUser.email,
         savedUser.firstName + " " + savedUser.lastName
       );
       await _createUserDocument(savedUser);
       return res.status(201).json({
-        status: SUCCESS,
-        message: VERIFY_MAIL_SENT,
+        status: Success.SUCCESS,
+        message: Success.VERIFY_MAIL_SENT,
       });
     }
     // Print the error and sent back failed response
     console.log(error);
     return res.status(403).json({
-      status: FAILED,
-      message: REGISTER_FAILED,
+      status: Errors.FAILED,
+      message: Errors.REGISTER_FAILED,
     });
   });
 };
@@ -151,7 +77,7 @@ module.exports.loginWithEmail = async (req, res, loginAsAdmin) => {
   if (!authUser)
     return res
       .status(400)
-      .json({ status: FAILED, message: INVALID_EMAIL_PASSWORD });
+      .json({ status: Errors.FAILED, message: Errors.INVALID_EMAIL_PASSWORD });
 
   // validate the password
   const validPass = await _comparePasswords(
@@ -160,11 +86,11 @@ module.exports.loginWithEmail = async (req, res, loginAsAdmin) => {
   );
   if (!validPass)
     return res.status(400).json({
-      status: FAILED,
-      message: INCORRECT_PASSWORD,
+      status: Errors.FAILED,
+      message: Errors.INCORRECT_PASSWORD,
     });
 
-  loginUser(authUser, loginAsAdmin, EMAIL_KEY, res, false);
+  loginUser(authUser, loginAsAdmin, Headers.EMAIL_KEY, res, false);
 };
 
 /* Verify user's account   
@@ -178,14 +104,16 @@ module.exports.verifyAccByToken = async (req, res) => {
   const token = req.query.t;
 
   if (!token)
-    return res.status(400).json({ status: FAILED, message: INVALID_TOKEN });
+    return res
+      .status(400)
+      .json({ status: Errors.FAILED, message: Errors.INVALID_TOKEN });
 
-  const verified = await verifyUser(token);
+  const verified = await TokenControllers.verifyUser(token);
 
   if (!verified)
     return res.status(400).json({
-      status: FAILED,
-      message: INVALID_EXPIRED_VERIFY_TOKEN,
+      status: Errors.FAILED,
+      message: Errors.INVALID_EXPIRED_VERIFY_TOKEN,
     });
 
   const authUser = await Auth.findOne({ _id: verified._userId });
@@ -194,15 +122,15 @@ module.exports.verifyAccByToken = async (req, res) => {
   await authUser.save(async (error, savedUser) => {
     if (savedUser)
       return res.status(200).json({
-        status: SUCCESS,
-        message: ACC_VERIFIED,
+        status: Success.SUCCESS,
+        message: Success.ACC_VERIFIED,
       });
 
     // Print the error and sent back failed response
     console.log(error);
     return res.status(403).json({
-      status: FAILED,
-      message: ACC_VERIFIED,
+      status: Errors.FAILED,
+      message: Success.ACC_VERIFIED,
     });
   });
 };
@@ -219,12 +147,15 @@ module.exports.resendAccVerificatinToken = async (req, res) => {
   const authUser = await getAuthUserByEmail(req.body.email);
 
   if (!authUser)
-    return res.status(400).send({ status: FAILED, message: USER_NOT_EXISTS });
-
-  if (authUser.emailVerified)
     return res
       .status(400)
-      .send({ status: FAILED, message: ACCOUNT_ALREADY_VERIFIED });
+      .send({ status: Errors.FAILED, message: Errors.USER_NOT_EXISTS });
+
+  if (authUser.emailVerified)
+    return res.status(400).send({
+      status: Errors.FAILED,
+      message: Errors.ACCOUNT_ALREADY_VERIFIED,
+    });
 
   // validate the password
   const validPass = await _comparePasswords(
@@ -234,17 +165,21 @@ module.exports.resendAccVerificatinToken = async (req, res) => {
 
   if (!validPass)
     return res.status(401).send({
-      status: FAILED,
-      message: INCORRECT_PASSWORD,
+      status: Errors.FAILED,
+      message: Errors.INCORRECT_PASSWORD,
     });
 
-  const name = await fetchNameOfUser(req.body.email);
+  const name = await UserControllers.fetchNameOfUser(req.body.email);
 
-  await sendNewVerificationMail(authUser._id, authUser.email, name);
+  await TokenControllers.sendNewVerificationMail(
+    authUser._id,
+    authUser.email,
+    name
+  );
 
   res.status(200).json({
-    status: SUCCESS,
-    message: RESENT_VERIFY_EMAIL,
+    status: Success.SUCCESS,
+    message: Success.RESENT_VERIFY_EMAIL,
   });
 };
 
@@ -261,7 +196,9 @@ module.exports.updatePassword = async (req, res) => {
   var authUser = await getAuthUser(req.tokenData.authId);
 
   if (!authUser)
-    return res.status(400).json({ status: FAILED, message: USER_NOT_EXISTS });
+    return res
+      .status(400)
+      .json({ status: Errors.FAILED, message: Errors.USER_NOT_EXISTS });
 
   // validate the password
   const validPass = await _comparePasswords(
@@ -271,8 +208,8 @@ module.exports.updatePassword = async (req, res) => {
 
   if (!validPass)
     return res.status(400).json({
-      status: FAILED,
-      message: INCORRECT_PASSWORD,
+      status: Errors.FAILED,
+      message: Errors.INCORRECT_PASSWORD,
     });
 
   const samePassword = await _comparePasswords(
@@ -282,8 +219,8 @@ module.exports.updatePassword = async (req, res) => {
 
   if (samePassword)
     return res.status(400).json({
-      status: FAILED,
-      message: OLD_PASSWORD_IS_SAME,
+      status: Errors.FAILED,
+      message: Errors.OLD_PASSWORD_IS_SAME,
     });
 
   authUser.password = await _hashThePassword(req.body.newPassword);
@@ -291,15 +228,18 @@ module.exports.updatePassword = async (req, res) => {
   await authUser.save(async (error, savedUser) => {
     if (savedUser)
       return res.status(200).json({
-        status: SUCCESS,
-        message: PASSWORD_UPDATED,
+        status: Success.SUCCESS,
+        message: Success.PASSWORD_UPDATED,
       });
 
     // Print the error and sent back failed response
     console.log(error);
     return res.status(403).json({
-      status: FAILED,
-      message: joinWithCommaSpace(PASSWORD_CHANGE_FAILED, TRY_LATER),
+      status: Errors.FAILED,
+      message: Helpers.joinWithCommaSpace(
+        Errors.PASSWORD_CHANGE_FAILED,
+        Errors.TRY_LATER
+      ),
     });
   });
 };
@@ -313,17 +253,22 @@ module.exports.sendPasswordResetCode = async (req, res) => {
   const authUser = await getAuthUserByEmail(req.body.email);
 
   if (!authUser)
-    return res.status(400).json({ status: FAILED, message: USER_NOT_EXISTS });
+    return res
+      .status(400)
+      .json({ status: Errors.FAILED, message: Errors.USER_NOT_EXISTS });
 
-  const result = await sendOTPForPasswordReset(authUser._id, authUser.email);
+  const result = await TokenControllers.sendOTPForPasswordReset(
+    authUser._id,
+    authUser.email
+  );
   if (result)
     return res.status(200).json({
-      status: SUCCESS,
-      message: OTP_SENT,
+      status: Success.SUCCESS,
+      message: Success.OTP_SENT,
     });
   return res.status(400).json({
-    status: FAILED,
-    message: OTP_ALREADY_SENT,
+    status: Errors.FAILED,
+    message: Errors.OTP_ALREADY_SENT,
   });
 };
 
@@ -336,13 +281,18 @@ module.exports.resendPasswordResetCode = async (req, res) => {
   const authUser = await getAuthUserByEmail(req.body.email);
 
   if (!authUser)
-    return res.status(400).json({ status: FAILED, message: USER_NOT_EXISTS });
+    return res
+      .status(400)
+      .json({ status: Errors.FAILED, message: Errors.USER_NOT_EXISTS });
 
-  await resendOTPForPasswordReset(authUser._id, authUser.email);
+  await TokenControllers.resendOTPForPasswordReset(
+    authUser._id,
+    authUser.email
+  );
 
   res.status(200).json({
-    status: SUCCESS,
-    message: OTP_RESENT,
+    status: Success.SUCCESS,
+    message: Success.OTP_RESENT,
   });
 };
 
@@ -356,19 +306,19 @@ module.exports.resendPasswordResetCode = async (req, res) => {
     - update the password
 */
 module.exports.resetPassword = async (req, res) => {
-  const verificationToken = await verifyOTP(req.body.otp);
+  const verificationToken = await TokenControllers.verifyOTP(req.body.otp);
   if (!verificationToken)
     return res.status(400).json({
-      status: FAILED,
-      message: INVALID_EXPIRED_OTP,
+      status: Errors.FAILED,
+      message: Errors.INVALID_EXPIRED_OTP,
     });
 
   const authUser = await Auth.findOne({ _id: verificationToken._userId });
 
   if (!authUser || authUser.email != req.body.email)
     return res.status(400).json({
-      status: FAILED,
-      message: USER_NOT_EXISTS,
+      status: Errors.FAILED,
+      message: Errors.USER_NOT_EXISTS,
     });
 
   const samePassword = await _comparePasswords(
@@ -378,26 +328,29 @@ module.exports.resetPassword = async (req, res) => {
 
   if (samePassword)
     return res.status(400).json({
-      status: FAILED,
-      message: OLD_PASSWORD_IS_SAME,
+      status: Errors.FAILED,
+      message: Errors.OLD_PASSWORD_IS_SAME,
     });
 
   authUser.password = await _hashThePassword(req.body.password);
 
-  await deleteOldToken(verificationToken._userId);
+  await TokenControllers.deleteOldToken(verificationToken._userId);
 
   await authUser.save(async (error, savedUser) => {
     if (savedUser)
       return res.status(200).json({
-        status: SUCCESS,
-        message: PASSWORD_RESET,
+        status: Success.SUCCESS,
+        message: Success.PASSWORD_RESET,
       });
 
     // Print the error and sent back failed response
     console.log(error);
     return res.status(403).json({
-      status: FAILED,
-      message: joinWithCommaSpace(PASSWORD_CHANGE_FAILED, TRY_LATER),
+      status: Errors.FAILED,
+      message: Helpers.joinWithCommaSpace(
+        Errors.PASSWORD_CHANGE_FAILED,
+        Errors.TRY_LATER
+      ),
     });
   });
 };
@@ -416,30 +369,33 @@ module.exports.refreshTokens = async (req, res) => {
 
   if (!authUser)
     return res.status(400).json({
-      status: FAILED,
-      message: USER_NOT_EXISTS,
+      status: Errors.FAILED,
+      message: Errors.USER_NOT_EXISTS,
     });
 
   // check if refresh token is equal to what we have in the database
   if (authUser.refreshToken === req.refreshToken) {
-    if (authUser.provider === EMAIL_KEY) {
+    if (authUser.provider === Headers.EMAIL_KEY) {
       _generateNewTokensAndSendBackToClient(authUser, res);
-    } else if (authUser.provider === GOOGLE_KEY) {
+    } else if (authUser.provider === Headers.GOOGLE_KEY) {
       _generateNewTokensAndSendBackToClient(authUser, res);
       // _refreshGoogleAccessToken(authUser, res);
-    } else if (authUser.provider === FACEBOOK_KEY) {
+    } else if (authUser.provider === Headers.FACEBOOK_KEY) {
       _refreshFbAccessToken(authUser, res);
     } else {
       console.log(`Invalid provider type ${authUser.provider}`);
       return res.status(403).json({
-        status: FAILED,
-        message: joinWithCommaSpace(TOKEN_REFRESH_FAILED, TRY_LATER),
+        status: Errors.FAILED,
+        message: Helpers.joinWithCommaSpace(
+          Errors.TOKEN_REFRESH_FAILED,
+          Errors.TRY_LATER
+        ),
       });
     }
   } else
     return res.status(400).json({
-      status: FAILED,
-      message: INVALID_MALFORMED_REFRESH_TOKEN,
+      status: Errors.FAILED,
+      message: Errors.INVALID_MALFORMED_REFRESH_TOKEN,
     });
 };
 
@@ -462,19 +418,25 @@ module.exports.deleteAccount = async (req, res) => {
   const authUser = await getAuthUser(req.tokenData.authId);
   if (!authUser)
     return res.status(403).json({
-      status: FAILED,
-      message: joinWithCommaSpace(ACC_DELETE_FAILED, TRY_LATER),
+      status: Errors.FAILED,
+      message: Helpers.joinWithCommaSpace(
+        Errors.ACC_DELETE_FAILED,
+        Errors.TRY_LATER
+      ),
     });
   await Auth.deleteOne({ email: authUser.email }, async (error) => {
     if (error)
       return res.status(403).json({
-        status: FAILED,
-        message: joinWithCommaSpace(ACC_DELETE_FAILED, TRY_LATER),
+        status: Errors.FAILED,
+        message: Helpers.joinWithCommaSpace(
+          Errors.ACC_DELETE_FAILED,
+          Errors.TRY_LATER
+        ),
       });
-    await deleteUser(req.tokenData.authId);
+    await UserControllers.deleteUser(req.tokenData.authId);
     return res.status(200).json({
-      status: SUCCESS,
-      message: ACC_DELETED,
+      status: Success.SUCCESS,
+      message: Success.ACC_DELETED,
     });
   });
 };
@@ -487,10 +449,10 @@ module.exports.getAllUsers = async (res) => {
     if (error)
       return res
         .status(403)
-        .json({ status: FAILED, message: FETCH_USERS_FAILED });
+        .json({ status: Errors.FAILED, message: Errors.FETCH_USERS_FAILED });
     return res.status(200).json({
-      status: SUCCESS,
-      message: FETCHED_USERS,
+      status: Success.SUCCESS,
+      message: Success.FETCHED_USERS,
       data: { users: users },
     });
   });
@@ -504,10 +466,10 @@ module.exports.getAllAdmins = async (res) => {
     if (error)
       return res
         .status(403)
-        .json({ status: FAILED, message: FETCH_ADMINS_FAILED });
+        .json({ status: Errors.FAILED, message: Errors.FETCH_ADMINS_FAILED });
     return res.status(200).json({
-      status: SUCCESS,
-      message: FETCHED_ADMINS,
+      status: Success.SUCCESS,
+      message: Success.FETCHED_ADMINS,
       data: { adming: admins },
     });
   });
@@ -537,25 +499,25 @@ module.exports.enableUser = async (req, res) => {
 */
 module.exports.loginWithFB = async (req, res) => {
   const userData = await getResponseFromURL(
-    FB_OAUTH_URL + req.body.accessToken
+    Headers.FB_OAUTH_URL + req.body.accessToken
   );
 
   if (userData.error)
     return res.status(403).json({
-      status: FAILED,
+      status: Errors.FAILED,
       message: userData.error.message,
     });
 
   if (!userData.email)
     return res.status(403).json({
-      status: FAILED,
-      message: FACEBOOK_LOGIN_FAILED,
+      status: Errors.FAILED,
+      message: Errors.FACEBOOK_LOGIN_FAILED,
     });
 
   var authUser = await getAuthUser(userData.email);
   if (authUser) {
     // login with facebook
-    tryOAuthLogin(authUser, res, req.body.accessToken, FACEBOOK_KEY);
+    tryOAuthLogin(authUser, res, req.body.accessToken, Headers.FACEBOOK_KEY);
   } else {
     // register with facebook
     tryRegisterWithFacebook(userData, res, req.body.accessToken);
@@ -573,25 +535,25 @@ module.exports.loginWithFB = async (req, res) => {
 module.exports.loginWithGoogle = async (req, res) => {
   // sending access token to server to verify if the token is valid and return the data
   const userData = await getResponseFromURL(
-    GOOGLE_OAUTH_URL + req.body.accessToken
+    Headers.GOOGLE_OAUTH_URL + req.body.accessToken
   );
 
   if (userData.error)
     return res.status(403).json({
-      status: FAILED,
+      status: Errors.FAILED,
       message: userData.error.error_description,
     });
 
   if (!userData.email)
     return res.status(403).json({
-      status: FAILED,
-      message: FACEBOOK_GOOGLE_FAILED,
+      status: Errors.FAILED,
+      message: Errors.FACEBOOK_GOOGLE_FAILED,
     });
 
   var authUser = await getAuthUser(userData.email);
   if (authUser) {
     // login with google
-    tryOAuthLogin(authUser, res, req.body.accessToken, GOOGLE_KEY);
+    tryOAuthLogin(authUser, res, req.body.accessToken, Headers.GOOGLE_KEY);
   } else {
     // register with google
     tryRegisterWithGoogle(userData, res, req.body.accessToken);
@@ -612,27 +574,32 @@ async function _disableOrEnableUser(req, res, disable) {
   var authUser = await getAuthUserById(req.body.userId);
   if (!authUser)
     return res.status(403).json({
-      status: FAILED,
-      message: USER_NOT_EXISTS,
+      status: Errors.FAILED,
+      message: Errors.USER_NOT_EXISTS,
     });
 
   if (authUser.disabled === disable)
     return res.status(403).json({
-      status: FAILED,
-      message: joinWithSpace(USER_ACCESS_ALREADY, disable ? DISABLED : ENABLED),
+      status: Errors.FAILED,
+      message: Helpers.joinWithSpace(
+        Errors.USER_ACCESS_ALREADY,
+        disable ? Errors.DISABLED : Errors.ENABLED
+      ),
     });
 
   authUser.disabled = disable;
   authUser.save((error, saved) => {
     if (error)
       return res.status(403).json({
-        status: FAILED,
-        message: disable ? ACCESS_DISABLE_FAILED : ACCESS_ENABLE_FAILED,
+        status: Errors.FAILED,
+        message: disable
+          ? Errors.ACCESS_DISABLE_FAILED
+          : Errors.ACCESS_ENABLE_FAILED,
       });
 
     return res.status(200).json({
-      status: SUCCESS,
-      message: disable ? ACCESS_DISABLED : ACCESS_ENABLED,
+      status: Success.SUCCESS,
+      message: disable ? Success.ACCESS_DISABLED : Success.ACCESS_ENABLED,
       data: { userId: saved._id },
     });
   });
@@ -713,7 +680,7 @@ async function tryRegisterWithFacebook(fbUser, res, accessToken) {
   const authUser = new Auth({
     email: fbUser.email,
     emailVerified: true,
-    provider: FACEBOOK_KEY,
+    provider: Headers.FACEBOOK_KEY,
     oauthToken: accessToken,
   });
 
@@ -722,13 +689,13 @@ async function tryRegisterWithFacebook(fbUser, res, accessToken) {
       savedUser.firstName = fbUser.first_name;
       savedUser.lastName = fbUser.last_name;
       await _createUserDocument(savedUser);
-      loginUser(savedUser, false, FACEBOOK_KEY, res, true);
+      loginUser(savedUser, false, Headers.FACEBOOK_KEY, res, true);
     } else {
       // Print the error and sent back failed response
       console.log(error);
       return res.status(403).json({
-        status: FAILED,
-        message: FB_REGISTER_FAILED,
+        status: Errors.FAILED,
+        message: Errors.FB_REGISTER_FAILED,
       });
     }
   });
@@ -743,7 +710,7 @@ async function tryRegisterWithGoogle(googleUser, res, accessToken) {
   const authUser = new Auth({
     email: googleUser.email,
     emailVerified: true,
-    provider: GOOGLE_KEY,
+    provider: Headers.GOOGLE_KEY,
     oauthToken: accessToken,
   });
 
@@ -753,13 +720,13 @@ async function tryRegisterWithGoogle(googleUser, res, accessToken) {
       savedUser.lastName = googleUser.name.toString().split(" ")[1];
       savedUser.photoUrl = googleUser.picture;
       await _createUserDocument(savedUser);
-      loginUser(savedUser, false, GOOGLE_KEY, res, true);
+      loginUser(savedUser, false, Headers.GOOGLE_KEY, res, true);
     } else {
       // Print the error and sent back failed response
       console.log(error);
       return res.status(403).json({
-        status: FAILED,
-        message: GOOGLE_REGISTER_FAILED,
+        status: Errors.FAILED,
+        message: Errors.GOOGLE_REGISTER_FAILED,
       });
     }
   });
@@ -775,8 +742,8 @@ async function tryOAuthLogin(authUser, res, accessToken, loginProvider) {
     loginUser(authUser, false, loginProvider, res, false);
   } else {
     return res.status(400).json({
-      status: FAILED,
-      message: EMAIL_IN_USE_BY_OTHER_PROVIDER,
+      status: Errors.FAILED,
+      message: Errors.EMAIL_IN_USE_BY_OTHER_PROVIDER,
     });
   }
 }
@@ -791,14 +758,14 @@ async function tryOAuthLogin(authUser, res, accessToken, loginProvider) {
 async function loginUser(authUser, loginAsAdmin, provider, res, isSignup) {
   if (!authUser.emailVerified)
     return res.status(403).json({
-      status: FAILED,
-      message: ACCOUNT_NOT_VERIFIED,
+      status: Errors.FAILED,
+      message: Errors.ACCOUNT_NOT_VERIFIED,
     });
 
   if (authUser.disabled)
     return res.status(401).json({
-      status: FAILED,
-      message: ACC_DISABLED,
+      status: Errors.FAILED,
+      message: Errors.ACC_DISABLED,
     });
 
   // if user is not an admin and trying to login through admin login route
@@ -807,14 +774,14 @@ async function loginUser(authUser, loginAsAdmin, provider, res, isSignup) {
   // throw error
   if ((!loginAsAdmin && authUser.admin) || (loginAsAdmin && !authUser.admin))
     return res.status(400).json({
-      status: FAILED,
-      message: LOGIN_NOT_ALLOWED,
+      status: Errors.FAILED,
+      message: Errors.LOGIN_NOT_ALLOWED,
     });
 
   if (loginAsAdmin && !authUser.adminVerified)
     return res.status(400).json({
-      status: FAILED,
-      message: ACC_UNDER_REVIEW,
+      status: Errors.FAILED,
+      message: Errors.ACC_UNDER_REVIEW,
     });
 
   authUser = await _createNewRefreshTokenIfAboutToExpire(authUser);
@@ -826,17 +793,17 @@ async function loginUser(authUser, loginAsAdmin, provider, res, isSignup) {
     if (savedUser) {
       return res
         .status(200)
-        .header(ACCESS_TOKEN, accessToken)
-        .header(REFRESH_TOKEN, authUser.refreshToken)
+        .header(Headers.ACCESS_TOKEN, accessToken)
+        .header(Headers.REFRESH_TOKEN, authUser.refreshToken)
         .json(
-          provider === EMAIL_KEY
+          provider === Headers.EMAIL_KEY
             ? {
-                status: SUCCESS,
-                message: LOGIN_SUCCESS,
+                status: Success.SUCCESS,
+                message: Success.LOGIN_SUCCESS,
               }
             : {
-                status: SUCCESS,
-                message: joinWithSpace(provider, LOGIN_SUCCESS),
+                status: Success.SUCCESS,
+                message: Helpers.joinWithSpace(provider, Success.LOGIN_SUCCESS),
                 signup: isSignup,
               }
         );
@@ -844,8 +811,11 @@ async function loginUser(authUser, loginAsAdmin, provider, res, isSignup) {
     // Print the error and sent back failed response
     console.log(error);
     return res.status(403).json({
-      status: FAILED,
-      message: joinWithCommaSpace(LOGIN_FAILED, TRY_LATER),
+      status: Errors.FAILED,
+      message: Helpers.joinWithCommaSpace(
+        Errors.LOGIN_FAILED,
+        Errors.TRY_LATER
+      ),
     });
   });
 }
@@ -854,7 +824,9 @@ async function loginUser(authUser, loginAsAdmin, provider, res, isSignup) {
     - make a get request and return data
 */
 async function _getNewFbAccessToken(oldAccessToken) {
-  const tokenData = await getResponseFromURL(FB_OAUTH_REFRESH + oldAccessToken);
+  const tokenData = await getResponseFromURL(
+    Headers.FB_OAUTH_REFRESH + oldAccessToken
+  );
   return tokenData;
 }
 
@@ -870,18 +842,18 @@ async function _generateNewTokensAndSendBackToClient(authUser, res) {
     if (savedUser) {
       return res
         .status(200)
-        .header(ACCESS_TOKEN, newAccessToken)
-        .header(REFRESH_TOKEN, authUser.refreshToken)
+        .header(Headers.ACCESS_TOKEN, newAccessToken)
+        .header(Headers.REFRESH_TOKEN, authUser.refreshToken)
         .json({
-          status: SUCCESS,
-          message: TOKENS_REFRESHED,
+          status: Success.SUCCESS,
+          message: Errors.TOKENS_REFRESHED,
         });
     }
     // Print the error and sent back failed response
     console.log(error);
     return res.status(403).json({
-      status: FAILED,
-      message: TOKEN_REFRESH_FAILED,
+      status: Errors.FAILED,
+      message: Errors.TOKEN_REFRESH_FAILED,
     });
   });
 }
@@ -901,17 +873,22 @@ async function _refreshFbAccessToken(authUser, res) {
       `Failed to get new accessToken from fb ${newAccessTokenData.message}`
     );
 
-    if (newAccessTokenData.message.toString().toLowerCase().includes(EXPIRE)) {
+    if (
+      newAccessTokenData.message
+        .toString()
+        .toLowerCase()
+        .includes(Headers.EXPIRE)
+    ) {
       return res.status(401).json({
-        status: FAILED,
-        message: SESSION_EXPIRED,
+        status: Errors.FAILED,
+        message: Errors.SESSION_EXPIRED,
         error: newAccessTokenData.message,
       });
     }
 
     return res.status(403).json({
-      status: FAILED,
-      message: OAUTH_LOGIN_FAILED,
+      status: Errors.FAILED,
+      message: Errors.OAUTH_LOGIN_FAILED,
       error: newAccessTokenData.message,
     });
   }
@@ -922,8 +899,8 @@ async function _refreshFbAccessToken(authUser, res) {
     _generateNewTokensAndSendBackToClient(authUser, res);
   } else {
     return res.status(403).json({
-      status: FAILED,
-      message: OAUTH_TOKEN_REFRESH_ERROR,
+      status: Errors.FAILED,
+      message: Errors.OAUTH_TOKEN_REFRESH_ERROR,
     });
   }
 }
@@ -956,7 +933,7 @@ async function _createNewRefreshTokenIfAboutToExpire(authUser) {
   Create user document(only done while registration)
 */
 async function _createUserDocument(userData) {
-  await createUser(userData);
+  await UserControllers.createUser(userData);
 }
 
 module.exports.getAuthUser = getAuthUser;
