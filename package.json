@@ -4,8 +4,8 @@
   "description": "Template for node.js REST API (includes auth)",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js",
-    "start": "node index.js",
+    "dev": "NODE_ENV=dev nodemon index.js",
+    "start": "NODE_ENV=prod node index.js",
     "format": "prettier \"./**/*.{js,html,json}\" --write",
     "lint": "eslint \"./**/*.js\"",
     "test": "nyc --reporter=text mocha tests/v1/test --exit"

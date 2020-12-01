@@ -26,7 +26,7 @@ router.post(
 */
 router.post(
   "/login",
-  AuthMiddlewares.validateRegisterFields,
+  AuthMiddlewares.validateLoginFields,
   AuthMiddlewares.validPassword,
   async (req, res) => {
     try {

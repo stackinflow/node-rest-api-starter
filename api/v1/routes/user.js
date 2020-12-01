@@ -31,4 +31,19 @@ router.patch(
   }
 );
 
+router.get(
+  "/check/:username",
+  AuthMiddlewares.checkAccessToken,
+  AuthMiddlewares.validateAccessToken,
+  AuthMiddlewares.checkUserAccess,
+  AuthMiddlewares.checkUsername,
+  async (req, res) => {
+    try {
+      await UserControllers.checkUsernameAvailability(req, res);
+    } catch (error) {
+      internalServerError(res, error);
+    }
+  }
+);
+
 module.exports = router;

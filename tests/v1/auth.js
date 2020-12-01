@@ -1,7 +1,9 @@
 const Auth = require("../../api/v1/models/auth");
 const Token = require("../../api/v1/models/token");
 const User = require("../../api/v1/models/user");
+const SuccessMessages = require("../../api/v1/utils/constants").successMessages;
 const Headers = require("../../api/v1/utils/constants").headers;
+const Errors = require("../../api/v1/utils/constants").errors;
 
 var name = "Mohammad Fayaz";
 
@@ -10,7 +12,13 @@ var data = {
   password: "Pass!w0rd",
 };
 
+var tampered_data = {
+  email: "fayaz6@test.com",
+  password: "Pass!w0rd",
+};
+
 const baseUrl = "/api/v1/auth";
+const baseUrlUser = "/api/v1/user";
 var verificationToken;
 var accessToken, refreshToken;
 
@@ -43,7 +51,7 @@ module.exports = (chai, server) => {
         .set("Content-Type", "application/json")
         .send(data)
         .end((err, response) => {
-          response.should.not.have.status(200);
+          response.should.have.status(400);
           response.should.not.have.header(Headers.ACCESS_TOKEN);
           response.should.not.have.header(Headers.REFRESH_TOKEN);
           done();
@@ -99,6 +107,17 @@ module.exports = (chai, server) => {
       });
     });
 
+    it("should not create resend new token as user is not existing ", (done) => {
+      chai
+        .request(server)
+        .post(baseUrl + "/token/resend")
+        .send(tampered_data)
+        .end((err, response) => {
+          response.should.have.status(401);
+          done();
+        });
+    });
+
     it("should create new verification token in db and send email ", (done) => {
       chai
         .request(server)
@@ -119,6 +138,40 @@ module.exports = (chai, server) => {
         verificationToken = array[0].token;
         done();
       });
+    });
+
+    it("should not allow user to login as email is not verified", (done) => {
+      chai
+        .request(server)
+        .post(baseUrl + "/login")
+        .set("Content-Type", "application/json")
+        .send(data)
+        .end((err, response) => {
+          response.should.have.status(403);
+          response.should.not.have.header(Headers.ACCESS_TOKEN);
+          response.should.not.have.header(Headers.REFRESH_TOKEN);
+          done();
+        });
+    });
+
+    it("should not verify the user as no token is passed", (done) => {
+      chai
+        .request(server)
+        .get(baseUrl + "/token/verify?t=")
+        .end((err, response) => {
+          response.should.have.status(400);
+          done();
+        });
+    });
+
+    it("should not verify the user as token is tampered", (done) => {
+      chai
+        .request(server)
+        .get(baseUrl + "/token/verify?t=TAMPERED" + verificationToken)
+        .end((err, response) => {
+          response.should.have.status(400);
+          done();
+        });
     });
 
     it("should verify the user ", (done) => {
@@ -143,7 +196,21 @@ module.exports = (chai, server) => {
         .request(server)
         .get(baseUrl + "/token/verify?t=" + verificationToken)
         .end((err, response) => {
-          response.should.not.have.status(200);
+          response.should.have.status(400);
+          done();
+        });
+    });
+
+    it("should not allow user to login as tried to login as admin", (done) => {
+      chai
+        .request(server)
+        .post("/api/v1/admin/auth/login")
+        .set("Content-Type", "application/json")
+        .send(data)
+        .end((err, response) => {
+          response.should.have.status(400);
+          response.should.not.have.header(Headers.ACCESS_TOKEN);
+          response.should.not.have.header(Headers.REFRESH_TOKEN);
           done();
         });
     });
@@ -361,6 +428,81 @@ module.exports = (chai, server) => {
         });
     });
 
+    // ***************** User routes testing start ******************//
+    var username;
+    it("should fetch user data", (done) => {
+      chai
+        .request(server)
+        .get(baseUrlUser)
+        .set("Content-Type", "application/json")
+        .set(Headers.AUTHORIZATION_HEADER, Headers.BEARER + " " + accessToken)
+        .end((err, response) => {
+          response.body.user.should.not.equal(null);
+          username = response.body.user.username;
+          response.should.have.status(200);
+          done();
+        });
+    });
+
+    it("should return username is taken", (done) => {
+      chai
+        .request(server)
+        .get(baseUrlUser + "/check/" + username)
+        .set("Content-Type", "application/json")
+        .set(Headers.AUTHORIZATION_HEADER, Headers.BEARER + " " + accessToken)
+        .end((err, response) => {
+          response.body.message.should.equal(Errors.USERNAME_IN_USE);
+          response.should.have.status(409);
+          done();
+        });
+    });
+
+    it("should return username is available", (done) => {
+      chai
+        .request(server)
+        .get(baseUrlUser + "/check/" + "fayaz")
+        .set("Content-Type", "application/json")
+        .set(Headers.AUTHORIZATION_HEADER, Headers.BEARER + " " + accessToken)
+        .end((err, response) => {
+          response.body.message.should.equal(
+            SuccessMessages.USERNAME_AVAILABLE
+          );
+          response.should.have.status(200);
+          done();
+        });
+    });
+
+    it("should update username", (done) => {
+      chai
+        .request(server)
+        .patch(baseUrlUser)
+        .set("Content-Type", "application/json")
+        .set(Headers.AUTHORIZATION_HEADER, Headers.BEARER + " " + accessToken)
+        .send({ username: "fayaz" })
+        .end((err, response) => {
+          response.body.user.username.should.equal("fayaz");
+          response.should.have.status(200);
+          done();
+        });
+    });
+
+    // ***************** User routes testing end ******************//
+
+    it("should not delete the user account as token is tampered", (done) => {
+      chai
+        .request(server)
+        .delete(baseUrl)
+        .set("Content-Type", "application/json")
+        .set(
+          Headers.AUTHORIZATION_HEADER,
+          Headers.BEARER + " TAMPER" + accessToken
+        )
+        .end((err, response) => {
+          response.should.have.status(400);
+          done();
+        });
+    });
+
     it("should delete the user account", (done) => {
       chai
         .request(server)
@@ -369,6 +511,18 @@ module.exports = (chai, server) => {
         .set(Headers.AUTHORIZATION_HEADER, Headers.BEARER + " " + accessToken)
         .end((err, response) => {
           response.should.have.status(200);
+          done();
+        });
+    });
+
+    it("should not delete the user account as it's already deleted", (done) => {
+      chai
+        .request(server)
+        .delete(baseUrl)
+        .set("Content-Type", "application/json")
+        .set(Headers.AUTHORIZATION_HEADER, Headers.BEARER + " " + accessToken)
+        .end((err, response) => {
+          response.should.have.status(403);
           done();
         });
     });
@@ -387,4 +541,6 @@ module.exports = (chai, server) => {
       });
     });
   });
+
+  return accessToken;
 };

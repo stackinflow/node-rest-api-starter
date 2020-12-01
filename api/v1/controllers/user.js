@@ -19,8 +19,8 @@ module.exports.createUser = async (userData) => {
 };
 
 module.exports.getUser = async (req, res) => {
-  await User.findById(
-    req.tokenData.authId,
+  await User.findOne(
+    { userId: req.tokenData.authId },
     {
       _id: 0,
       createdAt: 0,
@@ -28,7 +28,7 @@ module.exports.getUser = async (req, res) => {
       __v: 0,
     },
     (error, user) => {
-      if (error) {
+      if (error || !user) {
         return res.status(403).json({
           status: Errors.FAILED,
           message: Errors.USER_NOT_EXISTS,
@@ -44,14 +44,17 @@ module.exports.getUser = async (req, res) => {
 };
 
 module.exports.updateUser = async (req, res) => {
-  var user = await User.findById(req.tokenData.authId, {
-    createdAt: 0,
-    updatedAt: 0,
-    __v: 0,
-  });
+  var user = await User.findOne(
+    { userId: req.tokenData.authId },
+    {
+      createdAt: 0,
+      updatedAt: 0,
+      __v: 0,
+    }
+  );
   user = _updateUserModel(user, req.body);
   await user.save((error, updated) => {
-    if (error)
+    if (error || !updated)
       return res.status(403).json({
         status: Errors.FAILED,
         message: Errors.USER_DATA_UPDATE_FAILED,
@@ -62,6 +65,24 @@ module.exports.updateUser = async (req, res) => {
       user: updated,
     });
   });
+};
+
+module.exports.checkUsernameAvailability = async (req, res) => {
+  const user = await User.findOne(
+    { username: req.params.username },
+    { _id: 1 }
+  );
+  if (user) {
+    return res.status(409).json({
+      status: Errors.FAILED,
+      message: Errors.USERNAME_IN_USE,
+    });
+  } else {
+    return res.status(200).json({
+      status: Success.SUCCESS,
+      message: Success.USERNAME_AVAILABLE,
+    });
+  }
 };
 
 module.exports.deleteUser = async (authId) => {

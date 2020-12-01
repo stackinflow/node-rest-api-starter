@@ -324,6 +324,19 @@ function checkPassword(pwd) {
 }
 
 /*
+  username check
+*/
+module.exports.checkUsername = async (req, res, next) => {
+  const re = /^[a-z][a-z0-9_]{3,10}/;
+  if (!re.test(req.params.username))
+    return res.status(400).json({
+      status: Errors.FAILED,
+      message: Errors.INVALID_USERNAME,
+    });
+  next();
+};
+
+/*
 module.exports.checkAuthHeader = (req, res, next) => {
   const authHeader = req.header(AUTHORIZATION_HEADER).toString().split(" ");
   if (
