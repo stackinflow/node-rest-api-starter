@@ -1,14 +1,5 @@
-const {
-  registerValidation,
-  loginValidation,
-  emailValidation,
-  resetPasswordValidation,
-} = require("../utils/validators");
-const {
-  verifyRefreshToken,
-  verifyAccessToken,
-  getAuthUserWithProjection,
-} = require("../controllers/auth");
+const Validators = require("../utils/validators");
+const AuthControllers = require("../controllers/auth");
 const Headers = require("../utils/constants").headers;
 const Errors = require("../utils/constants").errors;
 
@@ -18,16 +9,23 @@ const Errors = require("../utils/constants").errors;
     as the body is same for all)
 */
 module.exports.validateRegisterFields = (req, res, next) => {
-  const { error } = registerValidation(req.body);
-  if (error)
-    return res.status(400).json({
-      status: Errors.FAILED,
-      message: error.details[0].message,
-      error: error,
-    });
-
-  next();
+  const { error } = Validators.registerValidation(req.body);
+  if (error) return sendError(error.details[0].message, error, res);
+  const passwordError = passwordHasError(req.body.password);
+  if (!passwordError) {
+    next();
+  } else {
+    sendError(passwordError, "", res);
+  }
 };
+
+function sendError(message, error, res) {
+  return res.status(400).json({
+    status: Errors.FAILED,
+    message: message,
+    error: error,
+  });
+}
 
 /* login fields validation middleware
     (using register fields validation to login and
@@ -35,15 +33,14 @@ module.exports.validateRegisterFields = (req, res, next) => {
     as the body is same for all)
 */
 module.exports.validateLoginFields = (req, res, next) => {
-  const { error } = loginValidation(req.body);
-  if (error)
-    return res.status(400).json({
-      status: Errors.FAILED,
-      message: error.details[0].message,
-      error: error,
-    });
-
-  next();
+  const { error } = Validators.loginValidation(req.body);
+  if (error) return sendError(error.details[0].message, error, res);
+  const passwordError = passwordHasError(req.body.password);
+  if (!passwordError) {
+    next();
+  } else {
+    sendError(passwordError, "", res);
+  }
 };
 
 /* 
@@ -53,14 +50,12 @@ module.exports.validPassword = (req, res, next) => {
   //compare both password field value
   const pwd = req.body.password;
 
-  const valid = checkPassword(pwd);
-  if (valid === true) next();
-  else
-    return res.status(400).json({
-      status: Errors.FAILED,
-      message: Errors.INVALID_PASSWORD,
-      error: valid,
-    });
+  const hasError = passwordHasError(pwd);
+  if (!hasError) {
+    next();
+  } else {
+    return sendError(Errors.INVALID_PASSWORD, hasError, res);
+  }
 };
 
 /* 
@@ -70,35 +65,27 @@ module.exports.validPasswords = (req, res, next) => {
   const pwd1 = req.body.oldPassword;
   const pwd2 = req.body.newPassword;
 
-  const valid = checkPassword(pwd1);
-  if (valid === true) {
-    const valid2 = checkPassword(pwd2);
-    if (valid2 === true) next();
-    else
-      return res.status(400).json({
-        status: Errors.FAILED,
-        message: Errors.INVALID_PASSWORD,
-        error: valid,
-      });
-  } else
-    return res.status(400).json({
-      status: Errors.FAILED,
-      message: Errors.INVALID_PASSWORD,
-      error: valid,
-    });
+  const hasErrorInPwd1 = passwordHasError(pwd1);
+  if (!hasErrorInPwd1) {
+    const hasErrorInPwd2 = passwordHasError(pwd2);
+    if (!hasErrorInPwd2) {
+      // has no errors
+      next();
+    } else {
+      return sendError(Errors.INVALID_PASSWORD, hasErrorInPwd2, res);
+    }
+  } else {
+    return sendError(Errors.INVALID_PASSWORD, hasErrorInPwd1, res);
+  }
 };
 
 /* 
   email validation middleware
 */
 module.exports.validEmail = (req, res, next) => {
-  const { error } = emailValidation(req.body);
+  const { error } = Validators.emailValidation(req.body);
   if (error) {
-    return res.status(400).json({
-      status: Errors.FAILED,
-      message: error.details[0].message,
-      error: error,
-    });
+    return sendError(error.details[0].message, error, res);
   }
   next();
 };
@@ -107,13 +94,9 @@ module.exports.validEmail = (req, res, next) => {
   validation of otp and new password middleware
 */
 module.exports.validResetFields = (req, res, next) => {
-  const { error } = resetPasswordValidation(req.body);
+  const { error } = Validators.resetPasswordValidation(req.body);
   if (error) {
-    return res.status(400).json({
-      status: Errors.FAILED,
-      message: error.details[0].message,
-      error: error,
-    });
+    return sendError(error.details[0].message, error, res);
   }
   next();
 };
@@ -124,10 +107,7 @@ module.exports.validResetFields = (req, res, next) => {
 */
 module.exports.checkRefreshToken = (req, res, next) => {
   if (!req.header(Headers.AUTHORIZATION_HEADER))
-    return res.status(400).json({
-      status: Errors.FAILED,
-      message: Errors.INVALID_TOKEN,
-    });
+    return sendError(Errors.INVALID_TOKEN, Errors.INVALID_TOKEN, res);
 
   const authHeader = req
     .header(Headers.AUTHORIZATION_HEADER)
@@ -138,10 +118,7 @@ module.exports.checkRefreshToken = (req, res, next) => {
       req.refreshToken = authHeader[1];
       next();
     } else
-      return res.status(400).json({
-        status: Errors.FAILED,
-        message: Errors.INVALID_TOKEN,
-      });
+      return sendError(Errors.INVALID_TOKEN, Errors.SPECIFY_VALID_TOKEN, res);
   } else
     return res.status(403).json({
       status: Errors.FAILED,
@@ -155,10 +132,7 @@ module.exports.checkRefreshToken = (req, res, next) => {
 */
 module.exports.checkAccessToken = (req, res, next) => {
   if (!req.header(Headers.AUTHORIZATION_HEADER))
-    return res.status(400).json({
-      status: Errors.FAILED,
-      message: Errors.INVALID_TOKEN,
-    });
+    return sendError(Errors.UNAUTHORIZED, Errors.SPECIFY_VALID_HEADER, res);
 
   const authHeader = req
     .header(Headers.AUTHORIZATION_HEADER)
@@ -169,10 +143,7 @@ module.exports.checkAccessToken = (req, res, next) => {
       req.accessToken = authHeader[1];
       next();
     } else
-      return res.status(400).json({
-        status: Errors.FAILED,
-        message: Errors.INVALID_TOKEN,
-      });
+      return sendError(Errors.INVALID_TOKEN, Errors.SPECIFY_VALID_TOKEN, res);
   } else
     return res.status(403).json({
       status: Errors.FAILED,
@@ -186,7 +157,9 @@ module.exports.checkAccessToken = (req, res, next) => {
    - if the refresh token is not valid, then Bad request status code is sent back
 */
 module.exports.validateRefreshToken = (req, res, next) => {
-  const verificationResult = verifyRefreshToken(req.refreshToken);
+  const verificationResult = AuthControllers.verifyRefreshToken(
+    req.refreshToken
+  );
   if (verificationResult.valid) {
     req.tokenData = verificationResult.data;
     next();
@@ -209,7 +182,7 @@ module.exports.validateRefreshToken = (req, res, next) => {
    - if the access token is not valid, then Bad request status code is sent back
 */
 module.exports.validateAccessToken = (req, res, next) => {
-  const verificationResult = verifyAccessToken(req.accessToken);
+  const verificationResult = AuthControllers.verifyAccessToken(req.accessToken);
   if (verificationResult.valid) {
     req.tokenData = verificationResult.data;
     next();
@@ -230,15 +203,14 @@ module.exports.validateAccessToken = (req, res, next) => {
   Check if user's access has been revoked by the admin
 */
 module.exports.checkUserAccess = async (req, res, next) => {
-  var authUser = await getAuthUserWithProjection(req.tokenData.authId, {
-    _id: 1,
-    disabled: 1,
-  });
-  if (!authUser)
-    return res.status(400).json({
-      status: Errors.FAILED,
-      message: Errors.INVALID_TOKEN,
-    });
+  var authUser = await AuthControllers.getAuthUserWithProjection(
+    req.tokenData.authId,
+    {
+      _id: 1,
+      disabled: 1,
+    }
+  );
+  if (!authUser) return sendError(Errors.INVALID_TOKEN, "", res);
 
   if (authUser.disabled)
     return res.status(403).json({
@@ -253,12 +225,15 @@ module.exports.checkUserAccess = async (req, res, next) => {
   Check if user's access has been revoked by the admin/account is verified
 */
 module.exports.checkAdminAccess = async (req, res, next) => {
-  var authUser = await getAuthUserWithProjection(req.tokenData.authId, {
-    _id: 1,
-    admin: 1,
-    adminVerified: 1,
-    disabled: 1,
-  });
+  var authUser = await AuthControllers.getAuthUserWithProjection(
+    req.tokenData.authId,
+    {
+      _id: 1,
+      admin: 1,
+      adminVerified: 1,
+      disabled: 1,
+    }
+  );
   if (!authUser || !authUser.admin)
     return res.status(403).json({
       status: Errors.FAILED,
@@ -286,17 +261,14 @@ module.exports.checkAdminAccess = async (req, res, next) => {
 */
 module.exports.checkOAuthAccessToken = async (req, res, next) => {
   if (!req.body.accessToken || req.body.accessToken.toString().length < 64)
-    return res.status(400).json({
-      status: Errors.FAILED,
-      message: Errors.INVALID_TOKEN,
-    });
+    return sendError(Errors.INVALID_TOKEN, "", res);
   next();
 };
 
 /*
   password check
 */
-function checkPassword(pwd) {
+function passwordHasError(pwd) {
   // at least one numeric value
   var re = /[0-9]/;
   if (!re.test(pwd)) {
@@ -320,7 +292,7 @@ function checkPassword(pwd) {
   if (!re.test(pwd)) {
     return Errors.PASSWORD_DOES_NOT_CONTAIN_SPECIAL_CHAR;
   }
-  return true;
+  return false;
 }
 
 /*
@@ -329,10 +301,11 @@ function checkPassword(pwd) {
 module.exports.checkUsername = async (req, res, next) => {
   const re = /^[a-z][a-z0-9_]{3,10}/;
   if (!re.test(req.params.username))
-    return res.status(400).json({
-      status: Errors.FAILED,
-      message: Errors.INVALID_USERNAME,
-    });
+    return sendError(
+      Errors.INVALID_USERNAME,
+      "Username should contain at least 1 lowercase, 1 uppercase, 1 special character and 1 number",
+      res
+    );
   next();
 };
 
