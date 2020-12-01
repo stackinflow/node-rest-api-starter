@@ -58,6 +58,78 @@ module.exports = (chai, server) => {
         });
     });
 
+    it("should not register the user as name is not specified", (done) => {
+      chai
+        .request(server)
+        .post(baseUrl + "/register")
+        .send({
+          email: data.email,
+          password: data.password,
+        })
+        .end((err, response) => {
+          response.should.have.status(400);
+          done();
+        });
+    });
+
+    it("should not register the user as email is not specified", (done) => {
+      chai
+        .request(server)
+        .post(baseUrl + "/register")
+        .send({
+          name: name,
+          password: data.password,
+        })
+        .end((err, response) => {
+          response.should.have.status(400);
+          done();
+        });
+    });
+
+    it("should not register the user as password is not specified", (done) => {
+      chai
+        .request(server)
+        .post(baseUrl + "/register")
+        .send({
+          name: name,
+          email: data.email,
+        })
+        .end((err, response) => {
+          response.should.have.status(400);
+          done();
+        });
+    });
+
+    it("should not register as email is invalid", (done) => {
+      chai
+        .request(server)
+        .post(baseUrl + "/register")
+        .send({
+          name: name,
+          email: "data.email",
+          password: data.password,
+        })
+        .end((err, response) => {
+          response.should.have.status(400);
+          done();
+        });
+    });
+
+    it("should not register as password is weak", (done) => {
+      chai
+        .request(server)
+        .post(baseUrl + "/register")
+        .send({
+          name: name,
+          email: data.email,
+          password: "data1",
+        })
+        .end((err, response) => {
+          response.should.have.status(400);
+          done();
+        });
+    });
+
     it("should register the user", (done) => {
       chai
         .request(server)
@@ -234,6 +306,7 @@ module.exports = (chai, server) => {
       chai
         .request(server)
         .patch(baseUrl + "/password")
+        .set(Headers.AUTHORIZATION_HEADER, Headers.BEARER + " " + accessToken)
         .send({ oldPassword: data, newPassword: data })
         .end((err, response) => {
           response.should.not.have.status(200);
@@ -245,9 +318,23 @@ module.exports = (chai, server) => {
       chai
         .request(server)
         .patch(baseUrl + "/password")
-        .send({ oldPassword: data, newPassword: data + "asd" })
+        .set(Headers.AUTHORIZATION_HEADER, Headers.BEARER + " " + accessToken)
+        .send({ oldPassword: "Passwd@007", newPassword: data.password + "asd" })
         .end((err, response) => {
-          response.should.not.have.status(200);
+          response.body.message.should.equal(Errors.INCORRECT_PASSWORD);
+          response.should.have.status(400);
+          done();
+        });
+    });
+
+    it("should reject password change as new password is weak ", (done) => {
+      chai
+        .request(server)
+        .patch(baseUrl + "/password")
+        .set(Headers.AUTHORIZATION_HEADER, Headers.BEARER + " " + accessToken)
+        .send({ oldPassword: data, newPassword: "Asd1adfad" })
+        .end((err, response) => {
+          response.should.have.status(400);
           done();
         });
     });
@@ -256,6 +343,7 @@ module.exports = (chai, server) => {
       chai
         .request(server)
         .patch(baseUrl + "/password")
+        .set(Headers.AUTHORIZATION_HEADER, Headers.BEARER + " " + accessToken)
         .send({ oldPassword: data.password, newPassword: data + "a" })
         .end((err, response) => {
           response.should.not.have.status(200);
@@ -270,7 +358,20 @@ module.exports = (chai, server) => {
         .set(Headers.AUTHORIZATION_HEADER, Headers.BASIC + " " + accessToken)
         .send({ oldPassword: data.password, newPassword: data.password + "a" })
         .end((err, response) => {
-          response.should.not.have.status(200);
+          response.should.have.status(403);
+          done();
+        });
+    });
+
+    it("should reject change password as both passwords are same", (done) => {
+      chai
+        .request(server)
+        .patch(baseUrl + "/password")
+        .set(Headers.AUTHORIZATION_HEADER, Headers.BEARER + " " + accessToken)
+        .send({ oldPassword: data.password, newPassword: data.password })
+        .end((err, response) => {
+          response.body.message.should.equal(Errors.OLD_PASSWORD_IS_SAME);
+          response.should.have.status(400);
           done();
         });
     });

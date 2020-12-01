@@ -25,6 +25,9 @@ const SuccessMessages = Object.freeze({
 });
 
 const errorMessages = Object.freeze({
+  UNAUTHORIZED: "Unauthorized",
+  SPECIFY_VALID_TOKEN: "Please specify valid token",
+  SPECIFY_VALID_HEADER: "Please specify valid auth header",
   FAILED: "failed",
   OTP_ALREADY_SENT:
     "We've already sent an OTP to the registered email, please try resend endpoint to get a new OTP.",
