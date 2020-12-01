@@ -148,7 +148,7 @@ module.exports.resendAccVerificatinToken = async (req, res) => {
 
   if (!authUser)
     return res
-      .status(400)
+      .status(401)
       .send({ status: Errors.FAILED, message: Errors.USER_NOT_EXISTS });
 
   if (authUser.emailVerified)
@@ -392,11 +392,12 @@ module.exports.refreshTokens = async (req, res) => {
         ),
       });
     }
-  } else
+  } else {
     return res.status(400).json({
       status: Errors.FAILED,
       message: Errors.INVALID_MALFORMED_REFRESH_TOKEN,
     });
+  }
 };
 
 // Helper method
