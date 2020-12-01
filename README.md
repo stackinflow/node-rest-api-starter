@@ -107,39 +107,7 @@ Node.js, MongoDB
 
 ### Dependencies
 
-```
-1. @hapi/joi: ^17.1.1
-2. @sendgrid/mail: ^7.2.3
-3. axios: ^0.19.2
-4. bcryptjs: ^2.4.3
-5. body-parser: ^1.19.0
-6. cors: ^2.8.5
-7. csurf: ^1.11.0
-8. dotenv: ^8.2.0
-9. express: ^4.17.1
-10. express-brute: ^1.0.1
-11. express-brute-memcached: 0.0.1
-12. helmet: ^4.0.0
-13. jsonwebtoken: ^8.5.1
-14. mongoose: ^5.9.27
-15. multer: ^1.4.2
-16. nodemailer: ^6.4.11
-17. otp-generator: ^1.1.0
-18. pug: ^3.0.0
-19. socket.io: ^2.3.0
-```
-
-### Dev dependencies
-
-```
-1. chai: ^4.2.0
-2. chai-http: ^4.3.0
-3. eslint: ^7.6.0
-4. eslint-config-prettier: ^6.11.0
-5. mocha: ^8.1.1
-6. nodemon: ^2.0.4
-7. prettier: ^2.0.5
-```
+Check [`package.json`](package.json) file
 
 ### Tests
 
@@ -207,35 +175,17 @@ Verify a sender email and use that email in the `.env` file, to verify click [he
 
 2. Place your application's Database credentials and config inside the `.env`.
 
-Refer below config as example:
-
-```js
-const dev = {
-  name: "dev",
-  app: {
-    port: process.env.PORT || 9000,
-  },
-  db: {
-    name: `${process.env.DB_NAME}-dev`,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    username: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD,
-  },
-};
-```
-
 3. Install [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) and [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) in VS Code
 
 4. Google and Facebook client details, [check out this article for generating client details](https://medium.com/@fayaz07/social-authentication-facebook-and-google-in-flutter-without-firebase-e3ca289ed50c)
 
-5. Run the project with nodemon
+5. Run the project with nodemon (dev server)
 
 ```bash
 npm run dev
 ```
 
-or Run as normal project
+or Run as normal project (prod server)
 
 ```bash
 npm start
@@ -253,44 +203,7 @@ npm test
 
 ## Setup GitHub actions
 
-Mock environment values
-
-```bash
-# allowed-values: prod, dev, test
-NODE_ENV=dev
-PORT=5000
-
-# mongodb
-# Ex: remote mongodb host: my-app.xxxxx.mongodb.net
-DB_NAME=node_template
-DB_HOST=localhost
-DB_PORT=27017
-DB_USERNAME=
-DB_PASSWORD=
-
-# tokens
-TOKEN_ISSUER=Node.js
-TOKEN_AUDIENCE=API_USERS
-TOKEN_SUBJECT=API_ACCESS
-# Ex: For 1 day- 1d, for 1 second - 1s
-REFRESH_TOKEN_EXPIRES=
-ACCESS_TOKEN_EXPIRES=
-
-# host
-# for remote host=https://myapp.com
-host=localhost:5000
-
-# SENDGRID_API_KEY go here
-SENDGRID_API_KEY=<API-KEY>
-SENDGRID_EMAIL=john@doe.com
-SENDGRID_USERNAME=John
-
-# facebook client details
-client_id=
-client_secret=
-```
-
-Create such config locally in a text file or just copy the config from `.env` of your db, then head over to `Secrets` section of your repo, an ideal link would be like this https://github.com/username/node-rest-api-starter/settings/secrets when you replace `username` with your own github username, then create a new Secret there with key as `ENV_VARS_LOCALHOST` and the value as whole of your file which you have just created in the above step. When you make a pull request to the master branch this will get executed.
+Refer this [page](utils/docs/gh_actions.md)
 
 <!--
 (#authors)
