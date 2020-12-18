@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const send_email = require("../utils/send_email");
 const mailer = new send_email();
 const otpGen = require("otp-generator");
+const TokenConstants = require("../utils/constants").account;
 
 /* Send OTP for password reset 
     - check if already a token exists
@@ -24,7 +25,11 @@ module.exports.sendOTPForPasswordReset = async (userId, email) => {
   });
 
   // gen verification token and saving that token in db, which will expire in an hour
-  const token = new Token({ _userId: userId, token: otp });
+  const token = new Token({
+    _userId: userId,
+    token: otp,
+    type: TokenConstants.tokenTypes.pwdReset,
+  });
   await token.save();
   mailer.pwdReset(otp, email);
   return true;
@@ -34,7 +39,7 @@ module.exports.sendOTPForPasswordReset = async (userId, email) => {
     - delete old OTP
 */
 module.exports.resendOTPForPasswordReset = async (userId, email) => {
-  await _deleteOldToken(userId);
+  await _deleteOldToken(userId, TokenConstants.tokenTypes.pwdReset);
   await this.sendOTPForPasswordReset(userId, email);
 };
 
@@ -54,6 +59,7 @@ module.exports.sendVerificationMail = async (userId, email, name) => {
   const token = new Token({
     _userId: userId,
     token: crypto.randomBytes(64).toString("hex"),
+    type: TokenConstants.tokenTypes.accVerification,
   });
 
   await token.save();
@@ -65,7 +71,7 @@ module.exports.sendVerificationMail = async (userId, email, name) => {
     - delete old token
 */
 module.exports.sendNewVerificationMail = async (userId, email, name) => {
-  await _deleteOldToken(userId);
+  await _deleteOldToken(userId, TokenConstants.tokenTypes.accVerification);
   await this.sendVerificationMail(userId, email, name);
 };
 
@@ -80,8 +86,8 @@ async function _getToken(userId) {
 /* 
   Remove an existing token from db 
 */
-async function _deleteOldToken(userId) {
-  await Token.deleteOne({ _userId: userId });
+async function _deleteOldToken(userId, tokenType) {
+  await Token.deleteOne({ _userId: userId, type: tokenType });
 }
 
 /* Verify users' account
@@ -94,7 +100,10 @@ async function _deleteOldToken(userId) {
 module.exports.verifyUser = async (token) => {
   const verificationToken = await Token.findOne({ token: token });
   if (!verificationToken) return;
-  await _deleteOldToken(verificationToken._userId);
+  await _deleteOldToken(
+    verificationToken._userId,
+    TokenConstants.tokenTypes.accVerification
+  );
   return verificationToken;
 };
 
@@ -108,7 +117,10 @@ module.exports.verifyUser = async (token) => {
 module.exports.verifyOTP = async (otp) => {
   const verificationToken = await Token.findOne({ token: otp });
   if (!verificationToken) return;
-  await _deleteOldToken(verificationToken._userId);
+  await _deleteOldToken(
+    verificationToken._userId,
+    TokenConstants.tokenTypes.pwdReset
+  );
   return verificationToken;
 };
 
