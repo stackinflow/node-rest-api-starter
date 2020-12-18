@@ -47,7 +47,7 @@ function _configureServer(app) {
   app.use((req, _, next) => {
     if (!req.url.includes("/uploads")) {
       console.log(
-        `Req: ${req.method} ${req.url} ${new Date().toString()} ${
+        `\nReq: ${req.method} ${req.url} ${new Date().toString()} ${
           req.connection.remoteAddress
         }`
       );

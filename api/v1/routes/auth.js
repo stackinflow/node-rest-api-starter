@@ -2,6 +2,7 @@ const router = require("express").Router();
 const AuthMiddlewares = require("../middlewares/auth");
 const AuthControllers = require("../controllers/auth");
 const { internalServerError } = require("../utils/response");
+const AccountConstants = require("../utils/constants").account;
 
 /* user registration route
     - validate body
@@ -13,12 +14,37 @@ router.post(
   AuthMiddlewares.validPassword,
   async (req, res) => {
     try {
-      await AuthControllers.registerWithEmail(req, res, false);
+      await AuthControllers.registerWithEmail(
+        req,
+        res,
+        AccountConstants.accRoles.normalUser
+      );
     } catch (error) {
       internalServerError(res, error);
     }
   }
 );
+
+// TODO: if you want custom roles, add your custom register route and pass the role of that user
+//
+// Example: Register for role of DBA
+//
+// router.post(
+//   "/dba/register",
+//   AuthMiddlewares.validateRegisterFields,
+//   AuthMiddlewares.validPassword,
+//   async (req, res) => {
+//     try {
+//       await AuthControllers.registerWithEmail(
+//         req,
+//         res,
+//         AccountConstants.accRoles.dba
+//       );
+//     } catch (error) {
+//       internalServerError(res, error);
+//     }
+//   }
+// );
 
 /* user login route
     - validate body
@@ -30,7 +56,7 @@ router.post(
   AuthMiddlewares.validPassword,
   async (req, res) => {
     try {
-      await AuthControllers.loginWithEmail(req, res, false);
+      await AuthControllers.loginWithEmail(req, res);
     } catch (error) {
       internalServerError(res, error);
     }

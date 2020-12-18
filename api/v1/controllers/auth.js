@@ -8,6 +8,7 @@ const Success = require("../utils/constants").successMessages;
 const UserControllers = require("../controllers/user");
 const { default: Axios } = require("axios");
 const Helpers = require("../../../core/helpers");
+const AccountConstants = require("../utils/constants").account;
 
 /* User registration with email   
     - check if email is existing/email being used by another provider
@@ -17,8 +18,17 @@ const Helpers = require("../../../core/helpers");
     - send an account verification email to the respective email
     - [ERROR] if failed to save user in db, send an error response
 */
-module.exports.registerWithEmail = async (req, res, registerAsAdmin) => {
-  if (registerAsAdmin === null) registerAsAdmin = false;
+module.exports.registerWithEmail = async (req, res, registerRole) => {
+  var usersRole;
+  // TODO: Add your custom roles here
+  switch (registerRole) {
+    case AccountConstants.accRoles.normalUser:
+      usersRole = AccountConstants.accRoles.normalUser;
+      break;
+    default:
+      usersRole = AccountConstants.accRoles.normalUser;
+  }
+
   // check if user exists
   var authUser = await getAuthUserByEmail(req.body.email);
 
@@ -33,7 +43,51 @@ module.exports.registerWithEmail = async (req, res, registerAsAdmin) => {
   const newAuthUser = new Auth({
     email: req.body.email,
     password: hashedPassword,
-    admin: registerAsAdmin,
+    role: usersRole,
+    provider: Headers.EMAIL_KEY,
+  });
+
+  // creating user in database
+  await newAuthUser.save(async (error, savedUser) => {
+    if (savedUser) {
+      savedUser.firstName = req.body.name.toString().split(" ")[0];
+      savedUser.lastName = req.body.name.toString().split(" ")[1];
+      await TokenControllers.sendVerificationMail(
+        savedUser._id,
+        savedUser.email,
+        savedUser.firstName + " " + savedUser.lastName
+      );
+      await _createUserDocument(savedUser);
+      return res.status(201).json({
+        status: Success.SUCCESS,
+        message: Success.VERIFY_MAIL_SENT,
+      });
+    }
+    // Print the error and sent back failed response
+    console.log(error);
+    return res.status(403).json({
+      status: Errors.FAILED,
+      message: Errors.REGISTER_FAILED,
+    });
+  });
+};
+
+module.exports.registerAsAdmin = async (req, res) => {
+  // check if user exists
+  var authUser = await getAuthUserByEmail(req.body.email);
+
+  if (authUser)
+    return res
+      .status(409)
+      .json({ status: Errors.FAILED, message: Errors.EMAIL_IN_USE });
+
+  const hashedPassword = await _hashThePassword(req.body.password);
+
+  // create user form data
+  const newAuthUser = new Auth({
+    email: req.body.email,
+    password: hashedPassword,
+    role: AccountConstants.accRoles.admin,
     provider: Headers.EMAIL_KEY,
   });
 
@@ -68,9 +122,7 @@ module.exports.registerWithEmail = async (req, res, registerAsAdmin) => {
     - compare password and hashedpassword using bcrypt
     - try login
 */
-module.exports.loginWithEmail = async (req, res, loginAsAdmin) => {
-  if (loginAsAdmin === null) loginAsAdmin = false;
-
+module.exports.loginWithEmail = async (req, res) => {
   // check if user exists
   var authUser = await getAuthUserByEmail(req.body.email);
 
@@ -90,7 +142,84 @@ module.exports.loginWithEmail = async (req, res, loginAsAdmin) => {
       message: Errors.INCORRECT_PASSWORD,
     });
 
-  loginUser(authUser, loginAsAdmin, Headers.EMAIL_KEY, res, false);
+  // normal user no need for approval of user
+  if (authUser.role == AccountConstants.accRoles.normalUser) {
+    // check for account active
+    if (authUser.status == AccountConstants.accountStatus.active) {
+      return loginUser(authUser, Headers.EMAIL_KEY, res, false);
+    } else {
+      // account status is different than approval
+      return res.status(401).json({
+        status: Errors.FAILED,
+        message:
+          authUser.status ==
+          AccountConstants.accountStatus.emailVerificationPending
+            ? Errors.ACCOUNT_NOT_VERIFIED
+            : `Your account is ${authUser.status}, contact support for more information`,
+      });
+    }
+  } else {
+    // check if role is custom user (normal user)
+    // check if admin has got approval
+    if (authUser.status == AccountConstants.accountStatus.adminApproved) {
+      return loginUser(authUser, Headers.EMAIL_KEY, res, false);
+    } else {
+      // account status is different than approval
+      return res.status(401).json({
+        status: Errors.FAILED,
+        message:
+          authUser.status == AccountConstants.accountStatus.pending
+            ? Errors.ACC_VERIFICATION_PENDING_BY_TEAM
+            : `Your account is ${authUser.status}`,
+      });
+    }
+  }
+};
+
+/* 
+  Admin login with email   
+*/
+module.exports.loginAsAdmin = async (req, res) => {
+  // check if user exists
+  var authUser = await getAuthUserByEmail(req.body.email);
+
+  if (!authUser)
+    return res
+      .status(400)
+      .json({ status: Errors.FAILED, message: Errors.INVALID_EMAIL_PASSWORD });
+
+  // validate the password
+  const validPass = await _comparePasswords(
+    req.body.password,
+    authUser.password
+  );
+  if (!validPass)
+    return res.status(400).json({
+      status: Errors.FAILED,
+      message: Errors.INCORRECT_PASSWORD,
+    });
+
+  // check if role is admin
+  if (authUser.role == AccountConstants.accRoles.admin) {
+    // check if admin has got approval
+    if (authUser.status == AccountConstants.accountStatus.adminApproved) {
+      return loginUser(authUser, Headers.EMAIL_KEY, res, false);
+    } else {
+      // account status is different than approval
+      return res.status(401).json({
+        status: Errors.FAILED,
+        message:
+          authUser.status == AccountConstants.accountStatus.pending
+            ? Errors.ACC_VERIFICATION_PENDING_BY_TEAM
+            : `Your account is ${authUser.status}`,
+      });
+    }
+  } else {
+    return res.status(401).json({
+      status: Errors.FAILED,
+      message: Errors.LOGIN_NOT_ALLOWED,
+    });
+  }
 };
 
 /* Verify user's account   
@@ -118,7 +247,12 @@ module.exports.verifyAccByToken = async (req, res) => {
 
   const authUser = await Auth.findOne({ _id: verified._userId });
 
-  authUser.emailVerified = true;
+  if (authUser.role == AccountConstants.accRoles.normalUser) {
+    authUser.status = AccountConstants.accountStatus.active;
+  } else {
+    authUser.status = AccountConstants.accountStatus.pending;
+  }
+
   await authUser.save(async (error, savedUser) => {
     if (savedUser)
       return res.status(200).json({
@@ -446,17 +580,21 @@ module.exports.deleteAccount = async (req, res) => {
     - fetch users and send in resposne
 */
 module.exports.getAllUsers = async (res) => {
-  await Auth.find({ admin: false }, { email: 1 }, (error, users) => {
-    if (error)
-      return res
-        .status(403)
-        .json({ status: Errors.FAILED, message: Errors.FETCH_USERS_FAILED });
-    return res.status(200).json({
-      status: Success.SUCCESS,
-      message: Success.FETCHED_USERS,
-      data: { users: users },
-    });
-  });
+  await Auth.find(
+    { role: { $ne: AccountConstants.accRoles.admin } },
+    { email: 1 },
+    (error, users) => {
+      if (error)
+        return res
+          .status(403)
+          .json({ status: Errors.FAILED, message: Errors.FETCH_USERS_FAILED });
+      return res.status(200).json({
+        status: Success.SUCCESS,
+        message: Success.FETCHED_USERS,
+        data: { users: users },
+      });
+    }
+  );
 };
 
 /* Fetch all admins
@@ -579,16 +717,38 @@ async function _disableOrEnableUser(req, res, disable) {
       message: Errors.USER_NOT_EXISTS,
     });
 
-  if (authUser.disabled === disable)
-    return res.status(403).json({
-      status: Errors.FAILED,
-      message: Helpers.joinWithSpace(
-        Errors.USER_ACCESS_ALREADY,
-        disable ? Errors.DISABLED : Errors.ENABLED
-      ),
-    });
+  if (disable) {
+    if (authUser.status == AccountConstants.accountStatus.disabled)
+      return res.status(403).json({
+        status: Errors.FAILED,
+        message: Helpers.joinWithSpace(
+          Errors.USER_ACCESS_ALREADY,
+          Errors.DISABLED
+        ),
+      });
 
-  authUser.disabled = disable;
+    authUser.status = AccountConstants.accountStatus.disabled;
+  } else {
+    // enable
+    if (
+      authUser.status == AccountConstants.accountStatus.adminApproved ||
+      authUser.status == AccountConstants.accountStatus.active
+    )
+      return res.status(403).json({
+        status: Errors.FAILED,
+        message: Helpers.joinWithSpace(
+          Errors.USER_ACCESS_ALREADY,
+          Success.ENABLED
+        ),
+      });
+
+    if (authUser.role == AccountConstants.accRoles.normalUser) {
+      authUser.status = AccountConstants.accountStatus.active;
+    } else {
+      authUser.status = AccountConstants.accountStatus.adminApproved;
+    }
+  }
+
   authUser.save((error, saved) => {
     if (error)
       return res.status(403).json({
@@ -680,7 +840,8 @@ async function getResponseFromURL(url) {
 async function tryRegisterWithFacebook(fbUser, res, accessToken) {
   const authUser = new Auth({
     email: fbUser.email,
-    emailVerified: true,
+    role: AccountConstants.accRoles.normalUser,
+    status: AccountConstants.accountStatus.active,
     provider: Headers.FACEBOOK_KEY,
     oauthToken: accessToken,
   });
@@ -690,7 +851,7 @@ async function tryRegisterWithFacebook(fbUser, res, accessToken) {
       savedUser.firstName = fbUser.first_name;
       savedUser.lastName = fbUser.last_name;
       await _createUserDocument(savedUser);
-      loginUser(savedUser, false, Headers.FACEBOOK_KEY, res, true);
+      loginUser(savedUser, Headers.FACEBOOK_KEY, res, true);
     } else {
       // Print the error and sent back failed response
       console.log(error);
@@ -710,7 +871,8 @@ async function tryRegisterWithFacebook(fbUser, res, accessToken) {
 async function tryRegisterWithGoogle(googleUser, res, accessToken) {
   const authUser = new Auth({
     email: googleUser.email,
-    emailVerified: true,
+    role: AccountConstants.accRoles.normalUser,
+    status: AccountConstants.accountStatus.active,
     provider: Headers.GOOGLE_KEY,
     oauthToken: accessToken,
   });
@@ -721,7 +883,7 @@ async function tryRegisterWithGoogle(googleUser, res, accessToken) {
       savedUser.lastName = googleUser.name.toString().split(" ")[1];
       savedUser.photoUrl = googleUser.picture;
       await _createUserDocument(savedUser);
-      loginUser(savedUser, false, Headers.GOOGLE_KEY, res, true);
+      loginUser(savedUser, Headers.GOOGLE_KEY, res, true);
     } else {
       // Print the error and sent back failed response
       console.log(error);
@@ -740,7 +902,7 @@ async function tryRegisterWithGoogle(googleUser, res, accessToken) {
 async function tryOAuthLogin(authUser, res, accessToken, loginProvider) {
   if (authUser.provider === loginProvider) {
     authUser.oauthToken = accessToken;
-    loginUser(authUser, false, loginProvider, res, false);
+    loginUser(authUser, loginProvider, res, false);
   } else {
     return res.status(400).json({
       status: Errors.FAILED,
@@ -756,35 +918,7 @@ async function tryOAuthLogin(authUser, res, accessToken, loginProvider) {
     - generate access and refresh tokens 
     - save tokens and send back to client
 */
-async function loginUser(authUser, loginAsAdmin, provider, res, isSignup) {
-  if (!authUser.emailVerified)
-    return res.status(403).json({
-      status: Errors.FAILED,
-      message: Errors.ACCOUNT_NOT_VERIFIED,
-    });
-
-  if (authUser.disabled)
-    return res.status(401).json({
-      status: Errors.FAILED,
-      message: Errors.ACC_DISABLED,
-    });
-
-  // if user is not an admin and trying to login through admin login route
-  // throw error
-  // if user is an admin and trying to login through normal login route
-  // throw error
-  if ((!loginAsAdmin && authUser.admin) || (loginAsAdmin && !authUser.admin))
-    return res.status(400).json({
-      status: Errors.FAILED,
-      message: Errors.LOGIN_NOT_ALLOWED,
-    });
-
-  if (loginAsAdmin && !authUser.adminVerified)
-    return res.status(400).json({
-      status: Errors.FAILED,
-      message: Errors.ACC_UNDER_REVIEW,
-    });
-
+async function loginUser(authUser, provider, res, isSignup) {
   authUser = await _createNewRefreshTokenIfAboutToExpire(authUser);
 
   const accessToken = await JWTHandler.genAccessToken(authUser._id);
@@ -847,7 +981,7 @@ async function _generateNewTokensAndSendBackToClient(authUser, res) {
         .header(Headers.REFRESH_TOKEN, authUser.refreshToken)
         .json({
           status: Success.SUCCESS,
-          message: Errors.TOKENS_REFRESHED,
+          message: Success.TOKENS_REFRESHED,
         });
     }
     // Print the error and sent back failed response

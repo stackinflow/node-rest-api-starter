@@ -2,6 +2,7 @@ const Validators = require("../utils/validators");
 const AuthControllers = require("../controllers/auth");
 const Headers = require("../utils/constants").headers;
 const Errors = require("../utils/constants").errors;
+const AccountContants = require("../utils/constants").account;
 
 /* register fields validation middleware
     (using register fields validation to login and
@@ -152,6 +153,75 @@ module.exports.checkAccessToken = (req, res, next) => {
 };
 
 /* 
+  accessToken validation middleware
+   - handles expiry of access token, in this case the user has to get a new access token
+   - if the access token is not valid, then Bad request status code is sent back
+*/
+module.exports.validateAccessToken = (req, res, next) => {
+  const verificationResult = AuthControllers.verifyAccessToken(req.accessToken);
+  if (verificationResult.valid) {
+    req.tokenData = verificationResult.data;
+    next();
+  } else if (verificationResult.error.toString().includes(Headers.EXPIRED)) {
+    return res.status(401).json({
+      status: Errors.FAILED,
+      message: Errors.ACCESS_TOKEN_EXPIRED,
+    });
+  } else {
+    return res.status(400).json({
+      status: Errors.FAILED,
+      message: Errors.INVALID_TOKEN,
+    });
+  }
+};
+
+/* 
+  accessToken validation middleware
+   - handles expiry of access token, in this case the user has to get a new access token
+   - if the access token is not valid, then Bad request status code is sent back
+*/
+module.exports.checkAndvalidateAccessToken = (req, res, next) => {
+  if (!req.header(Headers.AUTHORIZATION_HEADER)) {
+    return sendError(Errors.UNAUTHORIZED, Errors.SPECIFY_VALID_HEADER, res);
+  }
+
+  const authHeader = req
+    .header(Headers.AUTHORIZATION_HEADER)
+    .toString()
+    .split(" ");
+
+  // accept only if Auth type is Bearer
+  if (authHeader != null && authHeader[0] === Headers.BEARER) {
+    if (authHeader[1]) {
+      req.accessToken = authHeader[1];
+      const verificationResult = AuthControllers.verifyAccessToken(
+        req.accessToken
+      );
+      // if valid, move to next step
+      if (verificationResult.valid) {
+        req.tokenData = verificationResult.data;
+        next();
+        return;
+      }
+
+      // check if expired
+      if (verificationResult.error.toString().includes(Headers.EXPIRED)) {
+        return res.status(401).json({
+          status: Errors.FAILED,
+          message: Errors.ACCESS_TOKEN_EXPIRED,
+        });
+      }
+    }
+    return sendError(Errors.INVALID_TOKEN, Errors.SPECIFY_VALID_TOKEN, res);
+  } else {
+    return res.status(403).json({
+      status: Errors.FAILED,
+      message: Errors.INVALID_AUTH_TYPE,
+    });
+  }
+};
+
+/* 
   refreshToken validation middleware
    - handles expiry of refresh token, in this case the user has to re-login to the application
    - if the refresh token is not valid, then Bad request status code is sent back
@@ -176,29 +246,6 @@ module.exports.validateRefreshToken = (req, res, next) => {
   }
 };
 
-/* 
-  accessToken validation middleware
-   - handles expiry of access token, in this case the user has to get a new access token
-   - if the access token is not valid, then Bad request status code is sent back
-*/
-module.exports.validateAccessToken = (req, res, next) => {
-  const verificationResult = AuthControllers.verifyAccessToken(req.accessToken);
-  if (verificationResult.valid) {
-    req.tokenData = verificationResult.data;
-    next();
-  } else if (verificationResult.error.toString().includes(Headers.EXPIRED)) {
-    return res.status(401).json({
-      status: Errors.FAILED,
-      message: Errors.ACCESS_TOKEN_EXPIRED,
-    });
-  } else {
-    return res.status(400).json({
-      status: Errors.FAILED,
-      message: Errors.INVALID_TOKEN,
-    });
-  }
-};
-
 /*
   Check if user's access has been revoked by the admin
 */
@@ -207,19 +254,48 @@ module.exports.checkUserAccess = async (req, res, next) => {
     req.tokenData.authId,
     {
       _id: 1,
-      disabled: 1,
+      role: 1,
+      status: 1,
     }
   );
   if (!authUser) return sendError(Errors.INVALID_TOKEN, "", res);
 
-  if (authUser.disabled)
-    return res.status(403).json({
+  if (authUser.status != AccountContants.accountStatus.active) {
+    return res.status(401).json({
       status: Errors.FAILED,
-      message: Errors.ACC_DISABLED,
+      message: `Your account status is ${authUser.status}`,
     });
+  }
   req.authUser = authUser;
   next();
 };
+
+/*
+
+  // Check if user has access for specific role
+
+module.exports.checkUserAccess = async (req, res, next) => {
+  var authUser = await AuthControllers.getAuthUserWithProjection(
+    req.tokenData.authId,
+    {
+      _id: 1,
+      role: 1,
+      status: 1,
+    }
+  );
+  if (!authUser) return sendError(Errors.INVALID_TOKEN, "", res);
+
+  if (authUser.status != AccountContants.accountStatus.adminApproved) {
+    return res.status(401).json({
+      status: Errors.FAILED,
+      message: `Your account status is ${authUser.status}`,
+    });
+  }
+  req.authUser = authUser;
+  next();
+};
+
+*/
 
 /*
   Check if user's access has been revoked by the admin/account is verified
@@ -229,31 +305,72 @@ module.exports.checkAdminAccess = async (req, res, next) => {
     req.tokenData.authId,
     {
       _id: 1,
-      admin: 1,
-      adminVerified: 1,
-      disabled: 1,
+      role: 1,
+      status: 1,
     }
   );
-  if (!authUser || !authUser.admin)
-    return res.status(403).json({
+  // if user details not found or role is not admin
+  if (!authUser || authUser.role != AccountContants.accRoles.admin) {
+    return res.status(401).json({
       status: Errors.FAILED,
       message: Errors.OPERATION_NOT_PERMITTED,
     });
+  }
 
-  if (!authUser.adminVerified)
-    return res.status(403).json({
+  if (authUser.status != AccountContants.accountStatus.adminApproved) {
+    return res.status(401).json({
       status: Errors.FAILED,
-      message: Errors.ACC_VERIFICATION_PENDING_BY_TEAM,
+      message: `Your account status is ${authUser.status}`,
     });
-
-  if (authUser.disabled)
-    return res.status(403).json({
-      status: Errors.FAILED,
-      message: Errors.ACC_DISABLED,
-    });
-
+  }
   req.authUser = authUser;
   next();
+  /*
+  switch (authUser.status) {
+    // approve
+    case AccountContants.accountStatus.adminApproved: {
+      req.authUser = authUser;
+      next();
+      return;
+    }
+    case AccountContants.accountStatus.emailVerificationPending: {
+      return res.status(403).json({
+        status: Errors.FAILED,
+        message: Errors.ACCOUNT_NOT_VERIFIED,
+      });
+    }
+    case AccountContants.accountStatus.pending: {
+      return res.status(403).json({
+        status: Errors.FAILED,
+        message: Errors.ACC_VERIFICATION_PENDING_BY_TEAM,
+      });
+    }
+    case AccountContants.accountStatus.adminRejected: {
+      return res.status(403).json({
+        status: Errors.FAILED,
+        message: "Your admin request has been rejected",
+      });
+    }
+    case AccountContants.accountStatus.suspended: {
+      return res.status(403).json({
+        status: Errors.FAILED,
+        message: "Your account has been suspended",
+      });
+    }
+    case AccountContants.accountStatus.deactivated: {
+      return res.status(403).json({
+        status: Errors.FAILED,
+        message: "Your account has been deactivated",
+      });
+    }
+    case AccountContants.accountStatus.disabled: {
+      return res.status(403).json({
+        status: Errors.FAILED,
+        message: Errors.ACC_DISABLED,
+      });
+    }
+  }
+  */
 };
 
 /*

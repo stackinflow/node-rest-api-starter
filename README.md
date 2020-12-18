@@ -47,54 +47,80 @@ This repository is a template to avoid rewriting all the basic authentication co
 ```
 .
 ├── api
-│   └── v1
-│       ├── controllers
-│       │   ├── auth.js
-│       │   └── token.js
-│       ├── middlewares
-│       │   └── auth.js
-│       ├── models
-│       │   ├── auth.js
-│       │   └── token.js
-│       ├── routes
-│       │   ├── admin
-│       │   │   └── auth.js
-│       │   └── auth.js
-│       └── utils
-│           ├── constants.js
-│           ├── response.js
-│           ├── send_email.js
-│           ├── templates
-│           │   └── verify_email.pug
-│           └── validators.js
-├── ASSET_LICENSES
+│   └── v1
+│       ├── controllers
+│       │   ├── auth.js
+│       │   ├── token.js
+│       │   └── user.js
+│       ├── middlewares
+│       │   └── auth.js
+│       ├── models
+│       │   ├── auth.js
+│       │   ├── token.js
+│       │   └── user.js
+│       ├── routes
+│       │   ├── admin
+│       │   │   └── auth.js
+│       │   ├── auth.js
+│       │   └── user.js
+│       └── utils
+│           ├── constants
+│           │   ├── account.js
+│           │   ├── collection_names.js
+│           │   ├── email_token.js
+│           │   ├── error_messages.js
+│           │   ├── headers.js
+│           │   └── success_messages.js
+│           ├── constants.js
+│           ├── response.js
+│           ├── send_email.js
+│           ├── templates
+│           │   └── verify_email.pug
+│           └── validators.js
+├── assets
+│   └── banner-node-rest-api.png
 ├── core
-│   ├── config.js
-│   ├── db.js
-│   ├── jwt.js
-│   ├── print_env.js
-│   └── server.js
+│   ├── config.js
+│   ├── db.js
+│   ├── helpers.js
+│   ├── jwt.js
+│   ├── print_env.js
+│   └── server.js
 ├── index.js
 ├── keys
-│   ├── private.pem
-│   ├── private.pem.example
-│   ├── privater.pem
-│   ├── privater.pem.example
-│   ├── public.pem
-│   ├── public.pem.example
-│   ├── publicr.pem
-│   └── publicr.pem.example
-├── LICENSE
-├── node-rest-api-auth.postman_collection.json
+│   ├── private.pem
+│   ├── privater.pem
+│   ├── public.pem
+│   └── publicr.pem
 ├── package.json
 ├── package-lock.json
 ├── public
-│   └── images
+│   └── images
 ├── README.md
-└── tests
-    └── v1
-        ├── auth.js
-        └── test.js
+├── tests
+│   └── v1
+│       ├── auth.js
+│       └── test.js
+└── utils
+    ├── ASSET_LICENSES
+    ├── bash_scripts
+    │   ├── mongodb_setup.sh
+    │   ├── node_setup.sh
+    │   └── setup_project.sh
+    ├── CONTRIBUTING.md
+    ├── docs
+    │   ├── gh_actions.md
+    │   ├── setup_mongo.md
+    │   ├── setup_node.md
+    │   └── setup_project.md
+    ├── node-rest-api-auth.postman_collection.json
+    └── swagger
+        ├── api
+        │   └── v1
+        │       ├── auths.yaml
+        │       └── paths.yaml
+        ├── schemas
+        └── swagger.yaml
 ```
 
 <!--
@@ -103,7 +129,7 @@ This repository is a template to avoid rewriting all the basic authentication co
 
 ## Tech stack
 
-Node.js, MongoDB
+Node.js, Express.js, MongoDB, JWT, Pug.js, Sendgrid mail
 
 ### Dependencies
 
@@ -111,7 +137,7 @@ Check [`package.json`](package.json) file
 
 ### Tests
 
-Tests are written using Mocha and Chai
+Tests are written using Mocha and Chai, [here](./tests/v1)
 
 ### CI/CD
 
@@ -196,6 +222,8 @@ npm start
 ```bash
 npm test
 ```
+
+After running the project, checkout swagger ui at [http://localhost:7000/explorer/#/](http://localhost:7000/explorer/#/)
 
 <!--
 (#setup-github-actions)

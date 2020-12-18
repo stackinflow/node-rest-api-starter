@@ -1,5 +1,9 @@
 const mongoose = require("mongoose");
 const { AUTH_COLLECTION } = require("../utils/constants").collections;
+const account = require("../utils/constants").account;
+
+// console.log(account.accRolesList);
+// console.log(account.accountStatusList);
 
 const authSchema = new mongoose.Schema(
   {
@@ -14,6 +18,19 @@ const authSchema = new mongoose.Schema(
       min: 8,
       max: 1024,
     },
+    role: {
+      type: String,
+      default: account.accRoles.normalUser,
+      enum: account.accRolesList,
+    },
+    status: {
+      type: String,
+      default: account.accountStatus.emailVerificationPending,
+      enum: account.accountStatusList,
+    },
+    /*
+    replaced by role and status
+    ---------------------------
     admin: {
       type: Boolean,
       default: false,
@@ -30,6 +47,7 @@ const authSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    */
     provider: String,
     refreshToken: {
       type: String,

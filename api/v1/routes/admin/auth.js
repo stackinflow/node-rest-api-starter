@@ -2,6 +2,7 @@ const router = require("express").Router();
 const AuthMiddlewares = require("../../middlewares/auth");
 const AuthControllers = require("../../controllers/auth");
 const { internalServerError } = require("../../utils/response");
+// const AccountConstants = require("../../utils/constants").account;
 
 /* admin register route
     -  validates the body(email, password)
@@ -13,7 +14,7 @@ router.post(
   AuthMiddlewares.validPassword,
   async (req, res) => {
     try {
-      await AuthControllers.registerWithEmail(req, res, true);
+      await AuthControllers.registerAsAdmin(req, res);
     } catch (error) {
       internalServerError(res, error);
     }
@@ -30,7 +31,7 @@ router.post(
   AuthMiddlewares.validPassword,
   async (req, res) => {
     try {
-      await AuthControllers.loginWithEmail(req, res, true);
+      await AuthControllers.loginAsAdmin(req, res);
     } catch (error) {
       internalServerError(res, error);
     }
