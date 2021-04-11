@@ -1047,13 +1047,16 @@ async function _refreshFbAccessToken(authUser, res) {
 */
 async function _createNewRefreshTokenIfAboutToExpire(authUser) {
   if (authUser.refreshToken) {
-    const refreshTokenData = verifyRefreshToken(authUser.refreshToken).data;
-    var timeToExpiry = refreshTokenData.exp - Date.now() / 1000;
+    const refreshTokenVerification = verifyRefreshToken(authUser.refreshToken);
+    if (refreshTokenVerification.valid) {
+      const refreshTokenData = refreshTokenVerification.data;
+      var timeToExpiry = refreshTokenData.exp - Date.now() / 1000;
 
-    // looks like we have still more days for our refresh token to expire
-    if (timeToExpiry > 0) {
-      if (timeToExpiry / 86400 > 2) {
-        return authUser;
+      // looks like we have still more days for our refresh token to expire
+      if (timeToExpiry > 0) {
+        if (timeToExpiry / 86400 > 2) {
+          return authUser;
+        }
       }
     }
   }
